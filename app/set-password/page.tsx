@@ -9,7 +9,7 @@ export default function SetPasswordPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [ready, setReady] = useState(false)
+  const [sessionReady, setSessionReady] = useState(false)
   const [lang, setLang] = useState<'fr' | 'en'>('fr')
 
   const t = {
@@ -21,7 +21,8 @@ export default function SetPasswordPage() {
       submit: 'Accéder à mon programme',
       mismatch: 'Les mots de passe ne correspondent pas.',
       short: 'Minimum 6 caractères.',
-      error: 'Une erreur est survenue. Réessayez.',
+      error: 'Lien expiré. Contactez votre administrateur.',
+      waiting: 'Vérification du lien...',
     },
     en: {
       title: 'Create your password',
@@ -31,22 +32,30 @@ export default function SetPasswordPage() {
       submit: 'Access my program',
       mismatch: 'Passwords do not match.',
       short: 'Minimum 6 characters.',
-      error: 'An error occurred. Please try again.',
+      error: 'Link expired. Please contact your administrator.',
+      waiting: 'Verifying link...',
     },
   }[lang]
 
   useEffect(() => {
-    // Supabase puts the token in the URL hash — we need to let it process
     const supabase = createClient()
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        setReady(true)
-      }
-    })
-    // Also check if already has session from invite link
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true)
-    })
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const accessToken = hashParams.get('access_token')
+    const refreshToken = hashParams.get('refresh_token')
+    const type = hashParams.get('type')
+
+    if (accessToken && refreshToken) {
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error }) => {
+          if (error) setError('Lien expiré. Contactez votre administrateur.')
+          else setSessionReady(true)
+        })
+    } else {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setSessionReady(true)
+        else setError('Lien expiré. Contactez votre administrateur.')
+      })
+    }
   }, [])
 
   async function handleSubmit() {
@@ -74,20 +83,24 @@ export default function SetPasswordPage() {
         <h1 style={{ fontSize: '20px', fontWeight: 500, marginBottom: '8px' }}>{t.title}</h1>
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '28px', lineHeight: '1.5' }}>{t.subtitle}</p>
 
+        {!sessionReady && !error && (
+          <p style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', marginBottom: '20px' }}>{t.waiting}</p>
+        )}
+
         <div className="field">
           <label>{t.password}</label>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()} />
+            onKeyDown={e => e.key === 'Enter' && handleSubmit()} disabled={!sessionReady} />
         </div>
         <div className="field">
           <label>{t.confirm}</label>
           <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()} />
+            onKeyDown={e => e.key === 'Enter' && handleSubmit()} disabled={!sessionReady} />
         </div>
 
         {error && <p className="error-msg">{error}</p>}
 
-        <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
+        <button className="btn-primary" onClick={handleSubmit} disabled={loading || !sessionReady}>
           {loading ? '...' : t.submit}
         </button>
       </div>
