@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { getCurrentBatches, getArchiveBatches } from '@/lib/progression'
 
+const ADMIN_EMAIL = 'chris.cdr@gmail.com'
+
 type Batch = { id: string; batch_number: number; title: string; description: string }
 type Profile = { email: string; is_active: boolean; start_date: string; lang: string }
 
@@ -14,6 +16,7 @@ export default function DashboardPage() {
   const [batches, setBatches] = useState<Batch[]>([])
   const [lang, setLang] = useState<'fr' | 'en'>('fr')
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const t = {
     fr: { currentTitle: 'Cette semaine', archivesTitle: 'Archives', noArchives: 'Aucune archive pour le moment.', badgeCurrent: 'En cours', batchLabel: 'Batch' },
@@ -25,6 +28,8 @@ export default function DashboardPage() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.replace('/login'); return }
+
+      setIsAdmin(session.user.email === ADMIN_EMAIL)
 
       const { data: prof } = await supabase
         .from('profiles')
@@ -62,7 +67,14 @@ export default function DashboardPage() {
     <>
       <nav className="nav">
         <span className="nav-logo">PURE</span>
-        <Link href="/account" className="nav-avatar">{initial}</Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {isAdmin && (
+            <Link href="/admin" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-text-secondary)', padding: '5px 12px', border: '0.5px solid var(--color-border-medium)', borderRadius: '20px', textDecoration: 'none' }}>
+              Admin
+            </Link>
+          )}
+          <Link href="/account" className="nav-avatar">{initial}</Link>
+        </div>
       </nav>
       <div className="page-container">
         <p className="section-label">{t.currentTitle}</p>
@@ -71,7 +83,7 @@ export default function DashboardPage() {
             <div>
               <p className="batch-number">{t.batchLabel} {b.batch_number}</p>
               <p className="batch-title">{b.title}</p>
-              <p className="batch-subtitle">{b.description.split('.')[0]}</p>
+              <p className="batch-subtitle">{b.description?.split('.')[0]}</p>
             </div>
             <span className="badge-current">{t.badgeCurrent}</span>
           </Link>
