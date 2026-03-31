@@ -13,56 +13,6 @@
   --font-sans:          'Inter', Arial, sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.6;
-}
-
-h1, h2, h3, h4 {
-  font-weight: 700;
-  color: var(--color-primary-dark);
-}
-
-a {
-  color: var(--color-primary);
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-
-.btn-primary {
-  background-color: var(--color-primary);
-  color: #ffffff;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-.btn-primary:hover {
-  background-color: var(--color-primary-dark);
-}
-
-.card-info {
-  background-color: var(--color-bg-soft);
-  border: 1px solid #d0dce8;
-  border-radius: 0.5rem;
-  padding: 1.25rem 1.5rem;
-}
-
-.quote {
-  color: var(--color-primary);
-  font-style: italic;
 }
