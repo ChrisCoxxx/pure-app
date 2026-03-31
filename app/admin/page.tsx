@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
-const ADMIN_EMAIL = 'chris.cdr@gmail.com' // Change this to your email
+const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
 type Batch = { id: string; batch_number: number; title: string; description: string; pdf_url: string; is_published: boolean }
 type Member = { id: string; email: string; is_active: boolean; start_date: string }
@@ -17,6 +17,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
+  const [msgType, setMsgType] = useState<'success' | 'error'>('success')
 
   // Batch form
   const [bNum, setBNum] = useState('')
@@ -26,10 +27,14 @@ export default function AdminPage() {
   const [editId, setEditId] = useState<string | null>(null)
 
   // Member form
-  const [mEmail, setMEmail] = useState('')
   const [mStart, setMStart] = useState('')
   const [mActive, setMActive] = useState(true)
   const [editMemberId, setEditMemberId] = useState<string | null>(null)
+  const [editMemberEmail, setEditMemberEmail] = useState('')
+
+  // Invite form
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -50,13 +55,33 @@ export default function AdminPage() {
     setMembers(m || [])
   }
 
-  function flash(text: string) {
-    setMsg(text)
-    setTimeout(() => setMsg(''), 3000)
+  function flash(text: string, type: 'success' | 'error' = 'success') {
+    setMsg(text); setMsgType(type)
+    setTimeout(() => setMsg(''), 4000)
+  }
+
+  async function handleInvite() {
+    if (!inviteEmail) { flash('Entrez un email.', 'error'); return }
+    setInviting(true)
+    const res = await fetch('/api/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: inviteEmail })
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      flash(`Erreur : ${data.error}`, 'error')
+    } else {
+      flash(`✅ Invitation envoyée à ${inviteEmail} !`)
+      setInviteEmail('')
+      const supabase = createClient()
+      await fetchAll(supabase)
+    }
+    setInviting(false)
   }
 
   async function saveBatch() {
-    if (!bNum || !bTitle) { flash('❌ Numéro et titre requis.'); return }
+    if (!bNum || !bTitle) { flash('Numéro et titre requis.', 'error'); return }
     setSaving(true)
     const supabase = createClient()
     const payload = { batch_number: parseInt(bNum), title: bTitle, description: bDesc, pdf_url: bPdf, is_published: true }
@@ -88,18 +113,18 @@ export default function AdminPage() {
   }
 
   async function saveMember() {
-    if (!mStart) { flash('❌ Date de démarrage requise.'); return }
+    if (!mStart) { flash('Date de démarrage requise.', 'error'); return }
     setSaving(true)
     const supabase = createClient()
     await supabase.from('profiles').update({ is_active: mActive, start_date: mStart }).eq('id', editMemberId)
     flash('✅ Membre mis à jour !')
-    setEditMemberId(null); setMEmail(''); setMStart('')
+    setEditMemberId(null); setEditMemberEmail(''); setMStart('')
     await fetchAll(supabase)
     setSaving(false)
   }
 
   function editMember(m: Member) {
-    setEditMemberId(m.id); setMEmail(m.email)
+    setEditMemberId(m.id); setEditMemberEmail(m.email)
     setMStart(m.start_date || ''); setMActive(m.is_active)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -114,7 +139,14 @@ export default function AdminPage() {
       </nav>
 
       <div className="page-container">
-        {msg && <div style={{ background: '#f0faf5', border: '0.5px solid #1D9E75', borderRadius: 'var(--radius-md)', padding: '10px 14px', marginBottom: '16px', fontSize: '14px', color: '#0F6E56' }}>{msg}</div>}
+        {msg && (
+          <div style={{
+            background: msgType === 'success' ? '#f0faf5' : '#fdf2f2',
+            border: `0.5px solid ${msgType === 'success' ? '#1D9E75' : '#e74c3c'}`,
+            borderRadius: 'var(--radius-md)', padding: '10px 14px', marginBottom: '16px',
+            fontSize: '14px', color: msgType === 'success' ? '#0F6E56' : '#c0392b'
+          }}>{msg}</div>
+        )}
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
@@ -174,11 +206,32 @@ export default function AdminPage() {
         {/* MEMBERS TAB */}
         {tab === 'members' && (
           <>
+            {/* INVITE SECTION */}
+            <p className="section-label" style={{ marginTop: 0 }}>Inviter un membre</p>
+            <div style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px', marginBottom: '24px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '14px' }}>
+                Le membre recevra un email pour créer son mot de passe et accéder directement au programme.
+              </p>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label>Email du membre</label>
+                  <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                    placeholder="membre@exemple.com"
+                    onKeyDown={e => e.key === 'Enter' && handleInvite()} />
+                </div>
+                <button className="btn-primary" style={{ marginTop: 0, width: 'auto', padding: '12px 20px', whiteSpace: 'nowrap' }}
+                  onClick={handleInvite} disabled={inviting}>
+                  {inviting ? '...' : 'Envoyer l\'invitation'}
+                </button>
+              </div>
+            </div>
+
+            {/* EDIT MEMBER */}
             {editMemberId && (
               <>
-                <p className="section-label" style={{ marginTop: 0 }}>Modifier le membre</p>
+                <p className="section-label">Modifier le membre</p>
                 <div style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px', marginBottom: '24px' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 500, marginBottom: '16px' }}>{mEmail}</p>
+                  <p style={{ fontSize: '14px', fontWeight: 500, marginBottom: '16px' }}>{editMemberEmail}</p>
                   <div className="field">
                     <label>Date de démarrage</label>
                     <input type="date" value={mStart} onChange={e => setMStart(e.target.value)} />
@@ -198,7 +251,8 @@ export default function AdminPage() {
               </>
             )}
 
-            <p className="section-label" style={{ marginTop: 0 }}>Membres ({members.length})</p>
+            {/* MEMBERS LIST */}
+            <p className="section-label">Membres ({members.length})</p>
             {members.length === 0 && <p className="empty-state">Aucun membre.</p>}
             {members.map(m => (
               <div key={m.id} style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '14px 18px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
