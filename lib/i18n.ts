@@ -1,0 +1,93 @@
+export const translations = {
+  fr: {
+    login: {
+      title: 'Connexion',
+      email: 'Adresse email',
+      password: 'Mot de passe',
+      submit: 'Se connecter',
+      forgot: 'Mot de passe oublié ?',
+      resetSent: 'Un lien de réinitialisation a été envoyé à votre email.',
+      error: 'Email ou mot de passe incorrect.',
+    },
+    dashboard: {
+      currentTitle: 'Cette semaine',
+      archivesTitle: 'Archives',
+      noArchives: 'Aucune archive pour le moment.',
+      badgeCurrent: 'En cours',
+      batchLabel: 'Batch',
+    },
+    batch: {
+      back: '← Retour',
+      day: 'Jour',
+      openPdf: 'Ouvrir le PDF',
+      week: 'Semaine',
+    },
+    account: {
+      title: 'Mon compte',
+      email: 'Email',
+      status: 'Statut',
+      active: 'Actif',
+      inactive: 'Inactif',
+      startDate: 'Début du programme',
+      currentBatch: 'Batch actuel',
+      changePassword: 'Changer le mot de passe',
+      logout: 'Se déconnecter',
+      newPassword: 'Nouveau mot de passe',
+      confirmPassword: 'Confirmer le mot de passe',
+      save: 'Enregistrer',
+      passwordMismatch: 'Les mots de passe ne correspondent pas.',
+      passwordUpdated: 'Mot de passe mis à jour.',
+      language: 'Langue',
+    },
+    nav: {
+      account: 'Compte',
+    },
+  },
+  en: {
+    login: {
+      title: 'Sign in',
+      email: 'Email address',
+      password: 'Password',
+      submit: 'Sign in',
+      forgot: 'Forgot password?',
+      resetSent: 'A reset link has been sent to your email.',
+      error: 'Incorrect email or password.',
+    },
+    dashboard: {
+      currentTitle: 'This week',
+      archivesTitle: 'Archives',
+      noArchives: 'No archives yet.',
+      badgeCurrent: 'Current',
+      batchLabel: 'Batch',
+    },
+    batch: {
+      back: '← Back',
+      day: 'Day',
+      openPdf: 'Open PDF',
+      week: 'Week',
+    },
+    account: {
+      title: 'My account',
+      email: 'Email',
+      status: 'Status',
+      active: 'Active',
+      inactive: 'Inactive',
+      startDate: 'Program start date',
+      currentBatch: 'Current batch',
+      changePassword: 'Change password',
+      logout: 'Sign out',
+      newPassword: 'New password',
+      confirmPassword: 'Confirm password',
+      save: 'Save',
+      passwordMismatch: 'Passwords do not match.',
+      passwordUpdated: 'Password updated.',
+      language: 'Language',
+    },
+    nav: {
+      account: 'Account',
+    },
+  },
+}
+
+export type Lang = 'fr' | 'en'
+export type T = typeof translations.fr
