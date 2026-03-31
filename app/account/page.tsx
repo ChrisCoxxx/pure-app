@@ -1,11 +1,11 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { getCurrentBatches } from '@/lib/progression'
 
-export default function AccountPage() {
+function AccountContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isReset = searchParams.get('reset') === '1'
@@ -155,5 +155,13 @@ export default function AccountPage() {
         <button className="btn-secondary" style={{ marginTop: '24px' }} onClick={handleLogout}>{t.logout}</button>
       </div>
     </>
+  )
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense>
+      <AccountContent />
+    </Suspense>
   )
 }
