@@ -33,32 +33,27 @@ export async function POST(req: NextRequest) {
     const existingUser = existingUsers?.users?.find(u => u.email === email)
 
     if (existingUser) {
-      // User exists — just activate them
+      // User exists — activate them and send password reset
       await supabaseAdmin.from('profiles').update({
         is_active: true,
         start_date: today,
       }).eq('id', existingUser.id)
+
+      // Send password reset email
+      await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/set-password`
+      })
     } else {
-      // Create new user with random password (they'll reset it)
-      const tempPassword = Math.random().toString(36).slice(-10) + 'A1!'
-      const { data: newUser, error } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password: tempPassword,
-        email_confirm: true,
+      // New user — invite them (sends email automatically)
+      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/set-password`
       })
 
-      if (newUser?.user) {
+      if (inviteData?.user) {
         await supabaseAdmin.from('profiles').update({
           is_active: true,
           start_date: today,
-        }).eq('id', newUser.user.id)
-
-        // Send password reset so they can set their own password
-        await supabaseAdmin.auth.admin.generateLink({
-          type: 'recovery',
-          email,
-          options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/set-password` }
-        })
+        }).eq('id', inviteData.user.id)
       }
     }
   }
