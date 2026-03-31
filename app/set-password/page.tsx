@@ -87,7 +87,7 @@ export default function SetPasswordPage() {
 
         {error && <p className="error-msg">{error}</p>}
 
-        <button className="btn-primary" onClick={handleSubmit} disabled={loading || !ready}>
+        <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
           {loading ? '...' : t.submit}
         </button>
       </div>
