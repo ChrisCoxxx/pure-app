@@ -19,20 +19,17 @@ export default function AdminPage() {
   const [msg, setMsg] = useState('')
   const [msgType, setMsgType] = useState<'success' | 'error'>('success')
 
-  // Batch form
   const [bNum, setBNum] = useState('')
   const [bTitle, setBTitle] = useState('')
   const [bDesc, setBDesc] = useState('')
   const [bPdf, setBPdf] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
 
-  // Member form
   const [mStart, setMStart] = useState('')
   const [mActive, setMActive] = useState(true)
   const [editMemberId, setEditMemberId] = useState<string | null>(null)
   const [editMemberEmail, setEditMemberEmail] = useState('')
 
-  // Invite form
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviting, setInviting] = useState(false)
 
@@ -129,6 +126,24 @@ export default function AdminPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  async function deleteMember(id: string, email: string) {
+    if (!confirm(`Supprimer définitivement ${email} ?\nCette action est irréversible.`)) return
+    const supabase = createClient()
+    const { error } = await supabase.from('profiles').delete().eq('id', id)
+    if (error) { flash(`Erreur : ${error.message}`, 'error'); return }
+    const res = await fetch('/api/delete-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: id })
+    })
+    if (!res.ok) {
+      flash('Profil supprimé mais erreur auth — supprime manuellement dans Supabase.', 'error')
+    } else {
+      flash(`🗑️ ${email} supprimé.`)
+    }
+    await fetchAll(supabase)
+  }
+
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>Chargement...</div>
 
   return (
@@ -148,13 +163,11 @@ export default function AdminPage() {
           }}>{msg}</div>
         )}
 
-        {/* Tabs */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
           <button className={`lang-btn ${tab === 'batches' ? 'active' : ''}`} style={{ padding: '8px 18px', fontSize: '14px' }} onClick={() => setTab('batches')}>Batchs ({batches.length})</button>
           <button className={`lang-btn ${tab === 'members' ? 'active' : ''}`} style={{ padding: '8px 18px', fontSize: '14px' }} onClick={() => setTab('members')}>Membres ({members.length})</button>
         </div>
 
-        {/* BATCHES TAB */}
         {tab === 'batches' && (
           <>
             <p className="section-label" style={{ marginTop: 0 }}>{editId ? 'Modifier le batch' : 'Ajouter un batch'}</p>
@@ -203,10 +216,8 @@ export default function AdminPage() {
           </>
         )}
 
-        {/* MEMBERS TAB */}
         {tab === 'members' && (
           <>
-            {/* INVITE SECTION */}
             <p className="section-label" style={{ marginTop: 0 }}>Inviter un membre</p>
             <div style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px', marginBottom: '24px' }}>
               <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '14px' }}>
@@ -221,12 +232,11 @@ export default function AdminPage() {
                 </div>
                 <button className="btn-primary" style={{ marginTop: 0, width: 'auto', padding: '12px 20px', whiteSpace: 'nowrap' }}
                   onClick={handleInvite} disabled={inviting}>
-                  {inviting ? '...' : 'Envoyer l\'invitation'}
+                  {inviting ? '...' : "Envoyer l'invitation"}
                 </button>
               </div>
             </div>
 
-            {/* EDIT MEMBER */}
             {editMemberId && (
               <>
                 <p className="section-label">Modifier le membre</p>
@@ -251,7 +261,6 @@ export default function AdminPage() {
               </>
             )}
 
-            {/* MEMBERS LIST */}
             <p className="section-label">Membres ({members.length})</p>
             {members.length === 0 && <p className="empty-state">Aucun membre.</p>}
             {members.map(m => (
@@ -263,7 +272,10 @@ export default function AdminPage() {
                     {m.start_date && ` · Démarrage : ${new Date(m.start_date).toLocaleDateString('fr-BE')}`}
                   </p>
                 </div>
-                <button className="lang-btn" onClick={() => editMember(m)}>Modifier</button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="lang-btn" onClick={() => editMember(m)}>Modifier</button>
+                  <button className="lang-btn" style={{ color: '#c0392b' }} onClick={() => deleteMember(m.id, m.email)}>Supprimer</button>
+                </div>
               </div>
             ))}
           </>

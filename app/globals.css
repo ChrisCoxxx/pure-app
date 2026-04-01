@@ -8,8 +8,8 @@
   --color-bg: #ffffff;
   --color-bg-secondary: #f7f6f3;
   --color-bg-tertiary: #f0efe9;
-  --color-text: #1a1a18;
-  --color-text-secondary: #6b6a65;
+  --color-text: #2E4A62;
+  --color-text-secondary: #5F7F99;
   --color-text-tertiary: #9e9d98;
   --color-border: rgba(0,0,0,0.10);
   --color-border-medium: rgba(0,0,0,0.18);
@@ -57,7 +57,7 @@ input, button, select, textarea {
 }
 
 .nav-logo {
-  font-size: 17px;
+  font-size: 26px;        /* était 17px */
   font-weight: 500;
   letter-spacing: 0.14em;
 }
@@ -167,8 +167,8 @@ input, button, select, textarea {
 .btn-primary {
   display: block;
   width: 100%;
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: #5F7F99;
+  color: #ffffff;
   border: none;
   border-radius: var(--radius-md);
   padding: 14px 20px;
@@ -180,7 +180,7 @@ input, button, select, textarea {
   transition: opacity 0.15s;
 }
 
-.btn-primary:hover { opacity: 0.85; }
+.btn-primary:hover { background: #2E4A62; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-secondary {
@@ -223,7 +223,7 @@ input, button, select, textarea {
   transition: border-color 0.15s;
 }
 
-.field input:focus { border-color: var(--color-text); }
+.field input:focus { border-color: #5F7F99; }
 
 .error-msg {
   font-size: 13px;
@@ -312,7 +312,7 @@ input, button, select, textarea {
 }
 
 .lang-btn.active {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: #5F7F99;
+  color: #ffffff;
   border-color: transparent;
 }
