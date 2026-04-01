@@ -66,12 +66,7 @@ function AccountContent() {
     load()
   }, [router])
 
-  async function handleSaveFirstName() {
-    const supabase = createClient()
-    await supabase.from('profiles').update({ first_name: firstName.trim() }).eq('id', userId)
-    setFirstNameSaved(true)
-    setTimeout(() => setFirstNameSaved(false), 3000)
-  }
+
 
 async function handleSaveFirstName() {
   const supabase = createClient()
