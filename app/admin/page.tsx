@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase'
 const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
 type Batch = { id: string; batch_number: number; title: string; description: string; pdf_url: string; is_published: boolean }
-type Member = { id: string; email: string; is_active: boolean; start_date: string }
+type Member = { id: string; email: string; is_active: boolean; start_date: string; first_name: string }
 
 export default function AdminPage() {
   const router = useRouter()
@@ -25,12 +25,14 @@ export default function AdminPage() {
   const [bPdf, setBPdf] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
 
+  const [mFirstName, setMFirstName] = useState('')
   const [mStart, setMStart] = useState('')
   const [mActive, setMActive] = useState(true)
   const [editMemberId, setEditMemberId] = useState<string | null>(null)
   const [editMemberEmail, setEditMemberEmail] = useState('')
 
   const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteFirstName, setInviteFirstName] = useState('')
   const [inviting, setInviting] = useState(false)
 
   useEffect(() => {
@@ -69,8 +71,14 @@ export default function AdminPage() {
     if (!res.ok) {
       flash(`Erreur : ${data.error}`, 'error')
     } else {
+      if (inviteFirstName.trim()) {
+        const supabase = createClient()
+        const { data: member } = await supabase.from('profiles').select('id').eq('email', inviteEmail).single()
+        if (member) await supabase.from('profiles').update({ first_name: inviteFirstName.trim() }).eq('id', member.id)
+      }
       flash(`✅ Invitation envoyée à ${inviteEmail} !`)
       setInviteEmail('')
+      setInviteFirstName('')
       const supabase = createClient()
       await fetchAll(supabase)
     }
@@ -113,9 +121,9 @@ export default function AdminPage() {
     if (!mStart) { flash('Date de démarrage requise.', 'error'); return }
     setSaving(true)
     const supabase = createClient()
-    await supabase.from('profiles').update({ is_active: mActive, start_date: mStart }).eq('id', editMemberId)
+    await supabase.from('profiles').update({ is_active: mActive, start_date: mStart, first_name: mFirstName }).eq('id', editMemberId)
     flash('✅ Membre mis à jour !')
-    setEditMemberId(null); setEditMemberEmail(''); setMStart('')
+    setEditMemberId(null); setEditMemberEmail(''); setMStart(''); setMFirstName('')
     await fetchAll(supabase)
     setSaving(false)
   }
@@ -123,6 +131,7 @@ export default function AdminPage() {
   function editMember(m: Member) {
     setEditMemberId(m.id); setEditMemberEmail(m.email)
     setMStart(m.start_date || ''); setMActive(m.is_active)
+    setMFirstName(m.first_name || '')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -223,6 +232,10 @@ export default function AdminPage() {
               <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '14px' }}>
                 Le membre recevra un email pour créer son mot de passe et accéder directement au programme.
               </p>
+              <div className="field">
+                <label>Prénom (optionnel)</label>
+                <input type="text" value={inviteFirstName} onChange={e => setInviteFirstName(e.target.value)} placeholder="Prénom du membre" />
+              </div>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
                 <div className="field" style={{ marginBottom: 0, flex: 1 }}>
                   <label>Email du membre</label>
@@ -242,6 +255,10 @@ export default function AdminPage() {
                 <p className="section-label">Modifier le membre</p>
                 <div style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px', marginBottom: '24px' }}>
                   <p style={{ fontSize: '14px', fontWeight: 500, marginBottom: '16px' }}>{editMemberEmail}</p>
+                  <div className="field">
+                    <label>Prénom</label>
+                    <input type="text" value={mFirstName} onChange={e => setMFirstName(e.target.value)} placeholder="Prénom du membre" />
+                  </div>
                   <div className="field">
                     <label>Date de démarrage</label>
                     <input type="date" value={mStart} onChange={e => setMStart(e.target.value)} />
@@ -266,7 +283,7 @@ export default function AdminPage() {
             {members.map(m => (
               <div key={m.id} style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '14px 18px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                 <div>
-                  <p className="batch-title">{m.email}</p>
+                  <p className="batch-title">{m.first_name ? `${m.first_name} — ${m.email}` : m.email}</p>
                   <p style={{ fontSize: '12px', marginTop: '3px', color: m.is_active ? 'var(--color-green-text)' : 'var(--color-text-tertiary)' }}>
                     {m.is_active ? '● Actif' : '○ Inactif'}
                     {m.start_date && ` · Démarrage : ${new Date(m.start_date).toLocaleDateString('fr-BE')}`}

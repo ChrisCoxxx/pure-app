@@ -17,10 +17,31 @@ export default function DashboardPage() {
   const [lang, setLang] = useState<'fr' | 'en'>('fr')
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [firstName, setFirstName] = useState('')
 
   const t = {
-    fr: { currentTitle: 'Cette semaine', archivesTitle: 'Archives', noArchives: 'Aucune archive pour le moment.', badgeCurrent: 'En cours', batchLabel: 'Batch' },
-    en: { currentTitle: 'This week', archivesTitle: 'Archives', noArchives: 'No archives yet.', badgeCurrent: 'Current', batchLabel: 'Batch' },
+    fr: {
+      greeting: 'Bonjour,',
+      weekLabel: 'Semaine',
+      of: '/',
+      batchesUnlocked: 'batchs débloqués',
+      currentTitle: 'Cette semaine',
+      archivesTitle: 'Archives',
+      noArchives: 'Aucune archive pour le moment.',
+      badgeCurrent: 'En cours',
+      batchLabel: 'Batch',
+    },
+    en: {
+      greeting: 'Hello,',
+      weekLabel: 'Week',
+      of: '/',
+      batchesUnlocked: 'batches unlocked',
+      currentTitle: 'This week',
+      archivesTitle: 'Archives',
+      noArchives: 'No archives yet.',
+      badgeCurrent: 'Current',
+      batchLabel: 'Batch',
+    },
   }[lang]
 
   useEffect(() => {
@@ -41,6 +62,7 @@ export default function DashboardPage() {
 
       setProfile({ email: session.user.email!, is_active: prof.is_active, start_date: prof.start_date, lang: prof.lang || 'fr' })
       setLang(prof.lang || 'fr')
+      setFirstName(prof.first_name || '')
 
       const { data: batchData } = await supabase
         .from('batches')
@@ -63,10 +85,16 @@ export default function DashboardPage() {
   const archiveBatches = batches.filter(b => archiveNums.includes(b.batch_number)).reverse()
   const initial = profile.email[0].toUpperCase()
 
+  const weeksElapsed = Math.floor((Date.now() - new Date(profile.start_date).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
+  const currentWeek = Math.min(weeksElapsed, 12)
+  const totalWeeks = 12
+  const progressPercent = (currentWeek / totalWeeks) * 100
+  const unlockedCount = Math.min(currentWeek * 2, 24)
+
   return (
     <>
       <nav className="nav">
-        <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '0.14em' }}>PURE</span>
+        <span className="nav-logo">PURE</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {isAdmin && (
             <Link href="/admin" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-text-secondary)', padding: '5px 12px', border: '0.5px solid var(--color-border-medium)', borderRadius: '20px', textDecoration: 'none' }}>
@@ -76,6 +104,23 @@ export default function DashboardPage() {
           <Link href="/account" className="nav-avatar">{initial}</Link>
         </div>
       </nav>
+
+      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px 20px 0' }}>
+        <div style={{ background: 'var(--color-bg-secondary)', border: '0.5px solid var(--color-border)', borderRadius: '16px', padding: '20px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{t.greeting}</p>
+          {firstName && (
+            <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--color-text)', marginBottom: '16px' }}>{firstName}</p>
+          )}
+          <div style={{ height: '4px', background: 'var(--color-border)', borderRadius: '4px', marginBottom: '8px' }}>
+            <div style={{ height: '4px', width: `${progressPercent}%`, background: 'var(--color-green)', borderRadius: '4px' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+            <span style={{ fontWeight: 500, color: 'var(--color-green)' }}>{t.weekLabel} {currentWeek} {t.of} {totalWeeks}</span>
+            <span>{unlockedCount} {t.batchesUnlocked}</span>
+          </div>
+        </div>
+      </div>
+
       <div className="page-container">
         <p className="section-label">{t.currentTitle}</p>
         {currentBatches.map(b => (
@@ -83,7 +128,7 @@ export default function DashboardPage() {
             <div>
               <p className="batch-number">{t.batchLabel} {b.batch_number}</p>
               <p className="batch-title">{b.title}</p>
-              <p className="batch-subtitle">{b.description?.split('.')[0]}</p>
+              {b.description && <p className="batch-subtitle">{b.description.split('.')[0]}</p>}
             </div>
             <span className="badge-current">{t.badgeCurrent}</span>
           </Link>

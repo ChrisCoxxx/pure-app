@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 
 export default function SetPasswordPage() {
   const router = useRouter()
+  const [firstName, setFirstName] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
@@ -15,7 +16,8 @@ export default function SetPasswordPage() {
   const t = {
     fr: {
       title: 'Créer votre mot de passe',
-      subtitle: 'Bienvenue sur PURE. Choisissez un mot de passe pour accéder à votre programme.',
+      subtitle: 'Bienvenue sur PURE. Complétez votre profil pour accéder à votre programme.',
+      firstName: 'Prénom',
       password: 'Mot de passe',
       confirm: 'Confirmer le mot de passe',
       submit: 'Accéder à mon programme',
@@ -26,7 +28,8 @@ export default function SetPasswordPage() {
     },
     en: {
       title: 'Create your password',
-      subtitle: 'Welcome to PURE. Choose a password to access your program.',
+      subtitle: 'Welcome to PURE. Complete your profile to access your program.',
+      firstName: 'First name',
       password: 'Password',
       confirm: 'Confirm password',
       submit: 'Access my program',
@@ -42,7 +45,6 @@ export default function SetPasswordPage() {
     const hashParams = new URLSearchParams(window.location.hash.substring(1))
     const accessToken = hashParams.get('access_token')
     const refreshToken = hashParams.get('refresh_token')
-    const type = hashParams.get('type')
 
     if (accessToken && refreshToken) {
       supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
@@ -66,6 +68,12 @@ export default function SetPasswordPage() {
     const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password })
     if (error) { setError(t.error); setLoading(false); return }
+    if (firstName.trim()) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        await supabase.from('profiles').update({ first_name: firstName.trim() }).eq('id', session.user.id)
+      }
+    }
     router.replace('/dashboard')
   }
 
@@ -87,6 +95,12 @@ export default function SetPasswordPage() {
           <p style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', marginBottom: '20px' }}>{t.waiting}</p>
         )}
 
+        <div className="field">
+          <label>{t.firstName}</label>
+          <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
+            placeholder={lang === 'fr' ? 'Votre prénom' : 'Your first name'}
+            disabled={!sessionReady} />
+        </div>
         <div className="field">
           <label>{t.password}</label>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)}

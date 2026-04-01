@@ -11,6 +11,8 @@ function AccountContent() {
   const isReset = searchParams.get('reset') === '1'
 
   const [email, setEmail] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [firstNameSaved, setFirstNameSaved] = useState(false)
   const [isActive, setIsActive] = useState(false)
   const [startDate, setStartDate] = useState('')
   const [currentBatch, setCurrentBatch] = useState('')
@@ -21,21 +23,26 @@ function AccountContent() {
   const [pwSuccess, setPwSuccess] = useState('')
   const [showPwForm, setShowPwForm] = useState(isReset)
   const [loading, setLoading] = useState(false)
+  const [userId, setUserId] = useState('')
 
   const t = {
     fr: {
-      title: 'Mon compte', email: 'Email', status: 'Statut', active: 'Actif', inactive: 'Inactif',
-      startDate: 'Début du programme', currentBatch: 'Batch actuel', changePassword: 'Changer le mot de passe',
-      logout: 'Se déconnecter', newPassword: 'Nouveau mot de passe', confirmPassword: 'Confirmer', save: 'Enregistrer',
-      passwordMismatch: 'Les mots de passe ne correspondent pas.', passwordUpdated: 'Mot de passe mis à jour.',
-      language: 'Langue', back: '← Retour',
+      title: 'Mon compte', email: 'Email', firstName: 'Prénom', status: 'Statut',
+      active: 'Actif', inactive: 'Inactif', startDate: 'Début du programme',
+      currentBatch: 'Batch actuel', changePassword: 'Changer le mot de passe',
+      logout: 'Se déconnecter', newPassword: 'Nouveau mot de passe',
+      confirmPassword: 'Confirmer', save: 'Enregistrer', savedOk: 'Prénom enregistré.',
+      passwordMismatch: 'Les mots de passe ne correspondent pas.',
+      passwordUpdated: 'Mot de passe mis à jour.', language: 'Langue', back: '← Retour',
     },
     en: {
-      title: 'My account', email: 'Email', status: 'Status', active: 'Active', inactive: 'Inactive',
-      startDate: 'Program start date', currentBatch: 'Current batch', changePassword: 'Change password',
-      logout: 'Sign out', newPassword: 'New password', confirmPassword: 'Confirm', save: 'Save',
-      passwordMismatch: 'Passwords do not match.', passwordUpdated: 'Password updated.',
-      language: 'Language', back: '← Back',
+      title: 'My account', email: 'Email', firstName: 'First name', status: 'Status',
+      active: 'Active', inactive: 'Inactive', startDate: 'Program start date',
+      currentBatch: 'Current batch', changePassword: 'Change password',
+      logout: 'Sign out', newPassword: 'New password',
+      confirmPassword: 'Confirm', save: 'Save', savedOk: 'First name saved.',
+      passwordMismatch: 'Passwords do not match.',
+      passwordUpdated: 'Password updated.', language: 'Language', back: '← Back',
     },
   }[lang]
 
@@ -44,11 +51,12 @@ function AccountContent() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.replace('/login'); return }
-
+      setUserId(session.user.id)
       const { data: prof } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
       setEmail(session.user.email!)
       setIsActive(prof?.is_active || false)
       setLang(prof?.lang || 'fr')
+      setFirstName(prof?.first_name || '')
       if (prof?.start_date) {
         setStartDate(new Date(prof.start_date).toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' }))
         const [cur1, cur2] = getCurrentBatches(prof.start_date)
@@ -57,6 +65,13 @@ function AccountContent() {
     }
     load()
   }, [router])
+
+  async function handleSaveFirstName() {
+    const supabase = createClient()
+    await supabase.from('profiles').update({ first_name: firstName.trim() }).eq('id', userId)
+    setFirstNameSaved(true)
+    setTimeout(() => setFirstNameSaved(false), 3000)
+  }
 
   async function handleLanguageChange(newLang: 'fr' | 'en') {
     setLang(newLang)
@@ -101,6 +116,24 @@ function AccountContent() {
           <span className="account-label">{t.email}</span>
           <span className="account-value">{email}</span>
         </div>
+
+        <div className="account-row" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '8px' }}>
+          <span className="account-label">{t.firstName}</span>
+          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+            <input
+              type="text"
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              placeholder={lang === 'fr' ? 'Votre prénom' : 'Your first name'}
+              style={{ flex: 1, padding: '10px 12px', fontSize: '14px', border: '0.5px solid var(--color-border-medium)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg)', color: 'var(--color-text)', outline: 'none' }}
+            />
+            <button className="btn-primary" onClick={handleSaveFirstName}
+              style={{ marginTop: 0, width: 'auto', padding: '10px 16px', fontSize: '14px' }}>
+              {firstNameSaved ? '✓' : t.save}
+            </button>
+          </div>
+        </div>
+
         <div className="account-row">
           <span className="account-label">{t.status}</span>
           <span className="account-value" style={{ color: isActive ? 'var(--color-green-text)' : 'var(--color-text-tertiary)' }}>
@@ -151,7 +184,6 @@ function AccountContent() {
             </div>
           )
         }
-
         <button className="btn-secondary" style={{ marginTop: '24px' }} onClick={handleLogout}>{t.logout}</button>
       </div>
     </>
