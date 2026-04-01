@@ -73,12 +73,14 @@ function AccountContent() {
     setTimeout(() => setFirstNameSaved(false), 3000)
   }
 
-  async function handleLanguageChange(newLang: 'fr' | 'en') {
-    setLang(newLang)
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) await supabase.from('profiles').update({ lang: newLang }).eq('id', session.user.id)
-  }
+async function handleSaveFirstName() {
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return
+  await supabase.from('profiles').update({ first_name: firstName.trim() }).eq('id', session.user.id)
+  setFirstNameSaved(true)
+  setTimeout(() => setFirstNameSaved(false), 3000)
+}
 
   async function handlePasswordChange() {
     setPwError('')
