@@ -67,16 +67,7 @@ export default function BatchPage({ params }: { params: { number: string } }) {
           <p className="detail-desc">{batch.description}</p>
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
-          {[1, 2, 3].map(day => (
-            <div key={day} className="meal-row">
-              <span className="meal-day">{t.day} {day}</span>
-              <span className="meal-name" style={{ color: 'var(--color-text-tertiary)', fontStyle: 'italic' }}>
-                {lang === 'fr' ? 'Voir le PDF pour le détail' : 'See PDF for details'}
-              </span>
-            </div>
-          ))}
-        </div>
+
 
         {batch.pdf_url && (
           <a href={batch.pdf_url} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
