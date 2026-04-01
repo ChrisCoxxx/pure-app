@@ -88,7 +88,7 @@ export default function DashboardPage() {
   const weeksElapsed = Math.floor((Date.now() - new Date(profile.start_date).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
   const currentWeek = Math.min(weeksElapsed, 12)
   const totalWeeks = 12
-  const progressPercent = (currentWeek / totalWeeks) * 100
+const progressPercent = Math.min((currentWeek / 24) * 100, 100)
   const unlockedCount = Math.min(currentWeek * 2, 24)
 
   return (
@@ -105,21 +105,21 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px 20px 0' }}>
-        <div style={{ background: 'var(--color-bg-secondary)', border: '0.5px solid var(--color-border)', borderRadius: '16px', padding: '20px' }}>
-          <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{t.greeting}</p>
-          {firstName && (
-            <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--color-text)', marginBottom: '16px' }}>{firstName}</p>
-          )}
-          <div style={{ height: '4px', background: 'var(--color-border)', borderRadius: '4px', marginBottom: '8px' }}>
-            <div style={{ height: '4px', width: `${progressPercent}%`, background: 'var(--color-green)', borderRadius: '4px' }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-            <span style={{ fontWeight: 500, color: 'var(--color-green)' }}>{t.weekLabel} {currentWeek} {t.of} {totalWeeks}</span>
-            <span>{unlockedCount} {t.batchesUnlocked}</span>
-          </div>
-        </div>
-      </div>
+<div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px 20px 0' }}>
+  <div style={{ background: 'var(--color-bg-secondary)', border: '0.5px solid var(--color-border)', borderRadius: '16px', padding: '20px' }}>
+    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{t.greeting}</p>
+    {firstName && (
+      <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--color-text)', marginBottom: '16px' }}>{firstName}</p>
+    )}
+    <div style={{ height: '3px', background: 'var(--color-border)', borderRadius: '4px', marginBottom: '8px' }}>
+      <div style={{ height: '3px', width: `${progressPercent}%`, background: 'var(--color-text-secondary)', borderRadius: '4px' }} />
+    </div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+      <span style={{ fontWeight: 500 }}>{t.weekLabel} {currentWeek}</span>
+      <span>{unlockedCount} {t.batchesUnlocked}</span>
+    </div>
+  </div>
+</div>
 
       <div className="page-container">
         <p className="section-label">{t.currentTitle}</p>
