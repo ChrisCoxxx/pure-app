@@ -1,6 +1,6 @@
 # PURE App — État du projet
 
-*Dernière mise à jour : 31 mars 2026*
+*Dernière mise à jour : 1 avril 2026*
 
 ---
 
@@ -17,6 +17,7 @@
 | Supabase dashboard | https://supabase.com/dashboard/project/vbrnelqagrbujceirvoi |
 | Vercel dashboard | https://vercel.com |
 | Stripe dashboard | https://dashboard.stripe.com |
+| Resend dashboard | https://resend.com |
 
 ---
 
@@ -26,6 +27,7 @@
 - **Base de données + Auth** : Supabase (PostgreSQL)
 - **Hébergement** : Vercel (plan Hobby — gratuit)
 - **Paiements** : Stripe (live mode)
+- **Emails transactionnels** : Resend (domaine pure-be.com vérifié)
 - **Repo** : GitHub (ChrisCoxxx/pure-app)
 
 ---
@@ -38,6 +40,7 @@
 | Supabase | Organisation PURE |
 | Vercel | chriscoxxx (Hobby) |
 | Stripe | live mode actif |
+| Resend | connecté via GitHub, domaine pure-be.com vérifié |
 | Admin app | chris.cdr@gmail.com |
 
 ---
@@ -54,7 +57,6 @@
 ---
 
 ## Structure du code
-
 ```
 pure-app/
 ├── app/
@@ -70,7 +72,8 @@ pure-app/
 │   ├── admin/page.tsx        → interface admin
 │   └── api/
 │       ├── stripe-webhook/route.ts → webhook paiement Stripe
-│       └── invite/route.ts         → API invitation membre
+│       ├── invite/route.ts         → API invitation membre
+│       └── delete-member/route.ts  → API suppression membre
 ├── lib/
 │   ├── supabase.ts           → client Supabase
 │   ├── progression.ts        → logique batch/unlock
@@ -89,6 +92,7 @@ pure-app/
 |---|---|---|
 | id | uuid | = auth.users.id |
 | email | text | email membre |
+| first_name | text | prénom membre (nullable) |
 | is_active | boolean | accès autorisé |
 | start_date | date | début du programme |
 | lang | text | 'fr' ou 'en' |
@@ -108,7 +112,6 @@ pure-app/
 ---
 
 ## Logique de progression
-
 ```
 weeksElapsed = floor((today - start_date) / 7)
 maxUnlockedBatch = min((weeksElapsed + 1) * 2, 24)
@@ -134,16 +137,30 @@ archives = tous les batchs < currentBatches[0]
 | Reset mot de passe | ✅ |
 | Création mot de passe (invitation) | ✅ |
 | Dashboard membre (FR/EN) | ✅ |
+| Message de bienvenue avec prénom | ✅ |
+| Barre de progression (semaine X) | ✅ |
 | Progression automatique par batch | ✅ |
 | Page détail batch + ouverture PDF | ✅ |
 | Page compte membre | ✅ |
 | Changement langue FR/EN | ✅ |
+| Champ prénom (compte, set-password, admin) | ✅ |
 | Interface admin (batchs + membres) | ✅ |
+| Suppression membre depuis admin | ✅ |
 | Invitation membre depuis admin | ✅ |
 | Page inscription publique | ✅ |
 | Paiement Stripe → activation auto | ✅ |
 | Lien Admin dans nav (admin only) | ✅ |
 | Protection URL (batch non unlocked) | ✅ |
+| Emails via Resend (domaine pure-be.com) | ✅ |
+
+---
+
+## Emails — Configuration Resend
+
+- **Domaine vérifié** : pure-be.com
+- **Expéditeur** : hello@pure-be.com
+- **SMTP configuré dans Supabase** : smtp.resend.com / port 465
+- **Limite** : 3000 emails/mois (plan gratuit Resend)
 
 ---
 
@@ -153,13 +170,13 @@ archives = tous les batchs < currentBatches[0]
 1. Membre va sur `/register` → clique "S'abonner"
 2. Paiement sur Stripe (buy.stripe.com/...)
 3. Webhook Stripe → compte créé + activé + start_date = aujourd'hui
-4. Email automatique → membre crée son mot de passe
+4. Email automatique via Resend → membre crée son mot de passe + saisit son prénom
 5. Accès immédiat au dashboard ✅
 
 ### Via invitation admin
 1. Admin va sur `/admin` → onglet Membres
-2. Entre l'email → "Envoyer l'invitation"
-3. Membre reçoit email → crée mot de passe
+2. Entre le prénom (optionnel) + email → "Envoyer l'invitation"
+3. Membre reçoit email → crée mot de passe + saisit son prénom
 4. Compte activé automatiquement (trigger Supabase) ✅
 
 ---
@@ -171,6 +188,8 @@ archives = tous les batchs < currentBatches[0]
 | Inviter un membre | /admin → Membres → Inviter |
 | Activer/désactiver un membre | /admin → Membres → Modifier |
 | Changer start_date | /admin → Membres → Modifier |
+| Modifier le prénom d'un membre | /admin → Membres → Modifier |
+| Supprimer un membre | /admin → Membres → Supprimer |
 | Ajouter/modifier un batch | /admin → Batchs |
 | Rembourser un client | Stripe Dashboard |
 | Annuler un abonnement | Stripe → puis is_active=false dans admin |
@@ -179,8 +198,8 @@ archives = tous les batchs < currentBatches[0]
 
 ## Todo — Prochaines étapes
 
-- [ ] Connecter un vrai domaine (ex: app.pure-nutrition.be)
-- [ ] Email personnalisé via Resend.com (expéditeur @pure au lieu de supabase)
+- [ ] Connecter un vrai domaine (ex: app.pure-be.com)
+- [ ] Email automatique chaque semaine quand nouveaux batchs débloqués (cron job)
 - [ ] Tester webhook Stripe avec Stripe test mode
 - [ ] Ajouter les 24 batchs complets dans l'admin
 - [ ] Annulation automatique Supabase quand abonnement Stripe annulé
