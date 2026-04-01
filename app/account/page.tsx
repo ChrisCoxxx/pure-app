@@ -23,7 +23,6 @@ function AccountContent() {
   const [pwSuccess, setPwSuccess] = useState('')
   const [showPwForm, setShowPwForm] = useState(isReset)
   const [loading, setLoading] = useState(false)
-  const [userId, setUserId] = useState('')
 
   const t = {
     fr: {
@@ -51,7 +50,6 @@ function AccountContent() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.replace('/login'); return }
-      setUserId(session.user.id)
       const { data: prof } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
       setEmail(session.user.email!)
       setIsActive(prof?.is_active || false)
@@ -66,16 +64,21 @@ function AccountContent() {
     load()
   }, [router])
 
+  async function handleSaveFirstName() {
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    await supabase.from('profiles').update({ first_name: firstName.trim() }).eq('id', session.user.id)
+    setFirstNameSaved(true)
+    setTimeout(() => setFirstNameSaved(false), 3000)
+  }
 
-
-async function handleSaveFirstName() {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return
-  await supabase.from('profiles').update({ first_name: firstName.trim() }).eq('id', session.user.id)
-  setFirstNameSaved(true)
-  setTimeout(() => setFirstNameSaved(false), 3000)
-}
+  async function handleLanguageChange(newLang: 'fr' | 'en') {
+    setLang(newLang)
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) await supabase.from('profiles').update({ lang: newLang }).eq('id', session.user.id)
+  }
 
   async function handlePasswordChange() {
     setPwError('')
