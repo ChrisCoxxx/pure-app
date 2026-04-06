@@ -76,7 +76,7 @@ export default function DashboardPage() {
     load()
   }, [router])
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--color-text-tertiary)', letterSpacing: '0.1em' }}>PURE</div>
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--color-text-tertiary)', letterSpacing: '0.1em' }}>EXQUILO</div>
   if (!profile) return null
 
   const [cur1, cur2] = getCurrentBatches(profile.start_date)
@@ -94,7 +94,7 @@ const progressPercent = Math.min((currentWeek / 24) * 100, 100)
   return (
     <>
       <nav className="nav">
-        <span className="nav-logo">PURE</span>
+        <span className="nav-logo">EXQUILO</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {isAdmin && (
             <Link href="/admin" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-text-secondary)', padding: '5px 12px', border: '0.5px solid var(--color-border-medium)', borderRadius: '20px', textDecoration: 'none' }}>

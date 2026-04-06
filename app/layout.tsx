@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'PURE',
+  title: 'EXQUILO',
   description: 'Ton programme nutrition — ancré dans le quotidien et la bienveillance.',
 }
 

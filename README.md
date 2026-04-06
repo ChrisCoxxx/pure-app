@@ -1,4 +1,4 @@
-# PURE — Member App
+# EXQUILO — Member App
 
 ## Stack
 - Next.js 14 (frontend)
@@ -11,7 +11,7 @@
 ## STEP 1 — GitHub
 
 1. Go to https://github.com and create a free account
-2. Click "New repository" → name it `pure-app` → Public → Create
+2. Click "New repository" → name it `exquilo-app` → Public → Create
 3. Upload all these files (drag & drop in the browser)
 
 ---
@@ -19,7 +19,7 @@
 ## STEP 2 — Supabase
 
 1. Go to https://supabase.com → Create a free account
-2. Click "New project" → name it `pure` → choose a region close to you → Create
+2. Click "New project" → name it `exquilo` → choose a region close to you → Create
 3. Wait ~2 minutes for the project to start
 4. Go to **SQL Editor** → **New query**
 5. Copy/paste the entire content of `supabase-setup.sql`
@@ -32,12 +32,12 @@
 ## STEP 3 — Vercel
 
 1. Go to https://vercel.com → Create a free account (sign up with GitHub)
-2. Click "Add New Project" → Import your `pure-app` repository
+2. Click "Add New Project" → Import your `exquilo-app` repository
 3. Before deploying, click **Environment Variables** and add:
    - `NEXT_PUBLIC_SUPABASE_URL` → your Supabase Project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → your Supabase anon key
 4. Click **Deploy** → wait ~2 minutes
-5. Your app is live at `pure-app.vercel.app` 🎉
+5. Your app is live at `exquilo-app.vercel.app` 🎉
 
 ---
 

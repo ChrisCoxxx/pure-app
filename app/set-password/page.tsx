@@ -16,7 +16,7 @@ export default function SetPasswordPage() {
   const t = {
     fr: {
       title: 'Créer votre mot de passe',
-      subtitle: 'Bienvenue sur PURE. Complétez votre profil pour accéder à votre programme.',
+      subtitle: 'Bienvenue sur EXQUILO. Complétez votre profil pour accéder à votre programme.',
       firstName: 'Prénom',
       password: 'Mot de passe',
       confirm: 'Confirmer le mot de passe',
@@ -28,7 +28,7 @@ export default function SetPasswordPage() {
     },
     en: {
       title: 'Create your password',
-      subtitle: 'Welcome to PURE. Complete your profile to access your program.',
+      subtitle: 'Welcome to EXQUILO. Complete your profile to access your program.',
       firstName: 'First name',
       password: 'Password',
       confirm: 'Confirm password',
@@ -81,7 +81,7 @@ export default function SetPasswordPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div style={{ width: '100%', maxWidth: '360px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-          <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '0.14em' }}>PURE</span>
+          <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '0.14em' }}>EXQUILO</span>
           <div className="lang-toggle">
             <button className={`lang-btn ${lang === 'fr' ? 'active' : ''}`} onClick={() => setLang('fr')}>FR</button>
             <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>

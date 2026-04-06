@@ -106,7 +106,7 @@ function AccountContent() {
     <>
       <nav className="nav">
         <Link href="/dashboard" className="nav-back">{t.back}</Link>
-        <span className="nav-logo">PURE</span>
+        <span className="nav-logo">EXQUILO</span>
         <div style={{ width: 32 }} />
       </nav>
       <div className="page-container">

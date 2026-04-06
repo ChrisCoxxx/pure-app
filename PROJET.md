@@ -1,4 +1,4 @@
-# PURE App — État du projet
+# EXQUILO App — État du projet
 
 *Dernière mise à jour : 1 avril 2026*
 
@@ -8,11 +8,11 @@
 
 | Service | URL |
 |---|---|
-| App en ligne | https://pure-app-alpha.vercel.app |
-| Login membre | https://pure-app-alpha.vercel.app/login |
-| Inscription / paiement | https://pure-app-alpha.vercel.app/register |
-| Interface admin | https://pure-app-alpha.vercel.app/admin |
-| Créer mot de passe | https://pure-app-alpha.vercel.app/set-password |
+| App en ligne | https://exquilo.com |
+| Login membre | https://exquilo.com/login |
+| Inscription / paiement | https://exquilo.com/register |
+| Interface admin | https://exquilo.com/admin |
+| Créer mot de passe | https://exquilo.com/set-password |
 | GitHub repo | https://github.com/ChrisCoxxx/pure-app |
 | Supabase dashboard | https://supabase.com/dashboard/project/vbrnelqagrbujceirvoi |
 | Vercel dashboard | https://vercel.com |
@@ -27,7 +27,7 @@
 - **Base de données + Auth** : Supabase (PostgreSQL)
 - **Hébergement** : Vercel (plan Hobby — gratuit)
 - **Paiements** : Stripe (live mode)
-- **Emails transactionnels** : Resend (domaine pure-be.com vérifié)
+- **Emails transactionnels** : Resend (domaine exquilo.com vérifié)
 - **Repo** : GitHub (ChrisCoxxx/pure-app)
 
 ---
@@ -37,10 +37,10 @@
 | Service | Compte |
 |---|---|
 | GitHub | ChrisCoxxx |
-| Supabase | Organisation PURE |
+| Supabase | Organisation EXQUILO |
 | Vercel | chriscoxxx (Hobby) |
 | Stripe | live mode actif |
-| Resend | connecté via GitHub, domaine pure-be.com vérifié |
+| Resend | connecté via GitHub, domaine exquilo.com vérifié |
 | Admin app | chris.cdr@gmail.com |
 
 ---
@@ -52,13 +52,13 @@
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
-- `NEXT_PUBLIC_SITE_URL` = https://pure-app-alpha.vercel.app
+- `NEXT_PUBLIC_SITE_URL` = https://exquilo.com
 
 ---
 
 ## Structure du code
 ```
-pure-app/
+exquilo-app/
 ├── app/
 │   ├── page.tsx              → redirect login/dashboard
 │   ├── layout.tsx            → layout global
@@ -151,14 +151,14 @@ archives = tous les batchs < currentBatches[0]
 | Paiement Stripe → activation auto | ✅ |
 | Lien Admin dans nav (admin only) | ✅ |
 | Protection URL (batch non unlocked) | ✅ |
-| Emails via Resend (domaine pure-be.com) | ✅ |
+| Emails via Resend (domaine exquilo.com) | ✅ |
 
 ---
 
 ## Emails — Configuration Resend
 
-- **Domaine vérifié** : pure-be.com
-- **Expéditeur** : hello@pure-be.com
+- **Domaine vérifié** : exquilo.com
+- **Expéditeur** : hello@exquilo.com
 - **SMTP configuré dans Supabase** : smtp.resend.com / port 465
 - **Limite** : 3000 emails/mois (plan gratuit Resend)
 
@@ -198,7 +198,7 @@ archives = tous les batchs < currentBatches[0]
 
 ## Todo — Prochaines étapes
 
-- [ ] Connecter un vrai domaine (ex: app.pure-be.com)
+- [ ] Connecter un vrai domaine (ex: app.exquilo.com)
 - [ ] Email automatique chaque semaine quand nouveaux batchs débloqués (cron job)
 - [ ] Tester webhook Stripe avec Stripe test mode
 - [ ] Ajouter les 24 batchs complets dans l'admin
@@ -212,13 +212,13 @@ archives = tous les batchs < currentBatches[0]
 
 1. Ouvre une nouvelle conversation avec Claude
 2. Colle le contenu de ce fichier PROJET.md
-3. Dis "Voici l'état de mon projet PURE, je voudrais..."
+3. Dis "Voici l'état de mon projet EXQUILO, je voudrais..."
 4. Claude a tout le contexte pour continuer sans repartir de zéro
 
 ---
 
 ## Comment modifier le code
 
-1. Modifie les fichiers dans `Documents → GitHub → pure-app`
+1. Modifie les fichiers dans `Documents → GitHub → exquilo-app`
 2. GitHub Desktop → résumé → Commit → Push
 3. Vercel redéploie automatiquement en ~1 minute

@@ -9,7 +9,7 @@ export default function RegisterPage() {
 
   const t = {
     fr: {
-      title: 'Rejoindre PURE',
+      title: 'Rejoindre EXQUILO',
       subtitle: 'Accédez à votre programme structuré de 12 semaines.',
       feature1: '24 batchs de repas sur 12 semaines',
       feature2: 'Progression automatique et guidée',
@@ -19,7 +19,7 @@ export default function RegisterPage() {
       price: 'Paiement sécurisé via Stripe',
     },
     en: {
-      title: 'Join PURE',
+      title: 'Join EXQUILO',
       subtitle: 'Access your structured 12-week program.',
       feature1: '24 meal batches over 12 weeks',
       feature2: 'Automatic guided progression',
@@ -34,7 +34,7 @@ export default function RegisterPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '0.14em' }}>PURE</span>
+          <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '0.14em' }}>EXQUILO</span>
           <div className="lang-toggle">
             <button className={`lang-btn ${lang === 'fr' ? 'active' : ''}`} onClick={() => setLang('fr')}>FR</button>
             <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
