@@ -158,7 +158,7 @@ export default function AdminPage() {
   return (
     <>
       <nav className="nav">
-        <span className="nav-logo">EXQUILO — Admin</span>
+        <span className="nav-logo"><span style={{color:'#C8603A'}}>EX</span>QUILO — Admin</span>
         <Link href="/dashboard" className="nav-back" style={{ fontSize: '13px' }}>← App</Link>
       </nav>
 

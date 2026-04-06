@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,23 +8,24 @@
 
 :root {
   --color-bg: #ffffff;
-  --color-bg-secondary: #f7f6f3;
-  --color-bg-tertiary: #f0efe9;
-  --color-text: #2E4A62;
-  --color-text-secondary: #5F7F99;
-  --color-text-tertiary: #9e9d98;
-  --color-border: rgba(0,0,0,0.10);
-  --color-border-medium: rgba(0,0,0,0.18);
-  --color-green: #1D9E75;
-  --color-green-bg: #E1F5EE;
-  --color-green-text: #0F6E56;
+  --color-bg-secondary: #F5EDE6;
+  --color-bg-tertiary: #EDE3DA;
+  --color-text: #2C2C2A;
+  --color-text-secondary: #6B6B69;
+  --color-text-tertiary: #9E9D98;
+  --color-border: rgba(44,44,42,0.10);
+  --color-border-medium: rgba(44,44,42,0.18);
+  --color-green: #C8603A;
+  --color-green-bg: #F0D5C8;
+  --color-green-text: #8B3E22;
+  --color-terra: #C8603A;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
 }
 
 html, body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--color-bg-tertiary);
   color: var(--color-text);
   font-size: 16px;
@@ -57,9 +60,12 @@ input, button, select, textarea {
 }
 
 .nav-logo {
-  font-size: 26px;        /* était 17px */
-  font-weight: 500;
-  letter-spacing: 0.14em;
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--color-text);
 }
 
 .nav-avatar {
@@ -167,7 +173,7 @@ input, button, select, textarea {
 .btn-primary {
   display: block;
   width: 100%;
-  background: #5F7F99;
+  background: #C8603A;
   color: #ffffff;
   border: none;
   border-radius: var(--radius-md);
@@ -180,7 +186,7 @@ input, button, select, textarea {
   transition: opacity 0.15s;
 }
 
-.btn-primary:hover { background: #2E4A62; }
+.btn-primary:hover { background: #A64E2F; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-secondary {
@@ -223,7 +229,7 @@ input, button, select, textarea {
   transition: border-color 0.15s;
 }
 
-.field input:focus { border-color: #5F7F99; }
+.field input:focus { border-color: #C8603A; }
 
 .error-msg {
   font-size: 13px;
@@ -266,8 +272,9 @@ input, button, select, textarea {
 }
 
 .detail-title {
+  font-family: 'Playfair Display', serif;
   font-size: 22px;
-  font-weight: 500;
+  font-weight: 700;
   margin-bottom: 8px;
 }
 
@@ -312,7 +319,7 @@ input, button, select, textarea {
 }
 
 .lang-btn.active {
-  background: #5F7F99;
+  background: #C8603A;
   color: #ffffff;
   border-color: transparent;
 }

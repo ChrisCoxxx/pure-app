@@ -57,7 +57,7 @@ export default function BatchPage({ params }: { params: { number: string } }) {
     <>
       <nav className="nav">
         <Link href="/dashboard" className="nav-back">{t.back}</Link>
-        <span className="nav-logo">EXQUILO</span>
+        <span className="nav-logo"><span style={{color:'#C8603A'}}>EX</span>QUILO</span>
         <div style={{ width: 32 }} />
       </nav>
       <div className="page-container">

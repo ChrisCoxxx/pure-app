@@ -34,7 +34,7 @@ export default function RegisterPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '0.14em' }}>EXQUILO</span>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '34px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1 }}><span style={{color:'#C8603A'}}>EX</span><span style={{color:'#2C2C2A'}}>QUILO</span></span>
           <div className="lang-toggle">
             <button className={`lang-btn ${lang === 'fr' ? 'active' : ''}`} onClick={() => setLang('fr')}>FR</button>
             <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
