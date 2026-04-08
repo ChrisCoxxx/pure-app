@@ -7,7 +7,7 @@ import { getCurrentBatches, getArchiveBatches } from '@/lib/progression'
 
 const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
-type Batch = { id: string; batch_number: number; title: string; description: string }
+type Batch = { id: string; batch_number: number; title: string; description: string; univers: string }
 type Profile = { email: string; is_active: boolean; start_date: string; lang: string }
 
 export default function DashboardPage() {
@@ -18,6 +18,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [firstName, setFirstName] = useState('')
+  const SUBTITLES = [
+    "La structure remplace la volonté.",
+    "Ceci n'est pas un régime.",
+    "2 batches. 3 jours. Zéro charge mentale.",
+    "Pas de faim. Pas de calcul. Juste de la structure.",
+  ]
+  const [subtitle] = useState(() => SUBTITLES[Math.floor(Math.random() * SUBTITLES.length)])
 
   const t = {
     fr: {
@@ -66,7 +73,7 @@ export default function DashboardPage() {
 
       const { data: batchData } = await supabase
         .from('batches')
-        .select('id, batch_number, title, description')
+        .select('id, batch_number, title, description, univers')
         .eq('is_published', true)
         .order('batch_number')
 
@@ -109,8 +116,11 @@ const progressPercent = Math.min((currentWeek / 24) * 100, 100)
   <div style={{ background: 'var(--color-bg-secondary)', border: '0.5px solid var(--color-border)', borderRadius: '16px', padding: '20px' }}>
     <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{t.greeting}</p>
     {firstName && (
-      <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--color-text)', marginBottom: '16px' }}>{firstName}</p>
+      <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--color-text)', marginBottom: '6px' }}>{firstName}</p>
     )}
+    <p style={{ fontSize: '13px', color: 'var(--color-text-tertiary)', fontStyle: 'italic', marginBottom: '16px' }}>
+      {subtitle}
+    </p>
     <div style={{ height: '3px', background: 'var(--color-border)', borderRadius: '4px', marginBottom: '8px' }}>
       <div style={{ height: '3px', width: `${progressPercent}%`, background: 'var(--color-text-secondary)', borderRadius: '4px' }} />
     </div>
@@ -128,7 +138,7 @@ const progressPercent = Math.min((currentWeek / 24) * 100, 100)
             <div>
               <p className="batch-number">{t.batchLabel} {b.batch_number}</p>
               <p className="batch-title">{b.title}</p>
-              {b.description && <p className="batch-subtitle">{b.description.split('.')[0]}</p>}
+              {b.univers && <p className="batch-subtitle">{b.univers}</p>}
             </div>
             <span className="badge-current">{t.badgeCurrent}</span>
           </Link>

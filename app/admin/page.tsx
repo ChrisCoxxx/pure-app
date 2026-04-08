@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase'
 
 const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
-type Batch = { id: string; batch_number: number; title: string; description: string; pdf_url: string; is_published: boolean }
+type Batch = { id: string; batch_number: number; title: string; description: string; pdf_url: string; is_published: boolean; univers: string }
 type Member = { id: string; email: string; is_active: boolean; start_date: string; first_name: string }
 
 export default function AdminPage() {
@@ -23,6 +23,7 @@ export default function AdminPage() {
   const [bTitle, setBTitle] = useState('')
   const [bDesc, setBDesc] = useState('')
   const [bPdf, setBPdf] = useState('')
+  const [bUnivers, setBUnivers] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
 
   const [mFirstName, setMFirstName] = useState('')
@@ -89,7 +90,7 @@ export default function AdminPage() {
     if (!bNum || !bTitle) { flash('Numéro et titre requis.', 'error'); return }
     setSaving(true)
     const supabase = createClient()
-    const payload = { batch_number: parseInt(bNum), title: bTitle, description: bDesc, pdf_url: bPdf, is_published: true }
+    const payload = { batch_number: parseInt(bNum), title: bTitle, description: bDesc, pdf_url: bPdf, univers: bUnivers, is_published: true }
     if (editId) {
       await supabase.from('batches').update(payload).eq('id', editId)
       flash('✅ Batch mis à jour !')
@@ -97,7 +98,7 @@ export default function AdminPage() {
       await supabase.from('batches').insert(payload)
       flash('✅ Batch ajouté !')
     }
-    setBNum(''); setBTitle(''); setBDesc(''); setBPdf(''); setEditId(null)
+    setBNum(''); setBTitle(''); setBDesc(''); setBPdf(''); setBUnivers(''); setEditId(null)
     await fetchAll(supabase)
     setSaving(false)
   }
@@ -112,7 +113,7 @@ export default function AdminPage() {
 
   function editBatch(b: Batch) {
     setBNum(String(b.batch_number)); setBTitle(b.title)
-    setBDesc(b.description || ''); setBPdf(b.pdf_url || '')
+    setBDesc(b.description || ''); setBPdf(b.pdf_url || ''); setBUnivers(b.univers || '')
     setEditId(b.id)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -196,6 +197,10 @@ export default function AdminPage() {
                 <input type="text" value={bDesc} onChange={e => setBDesc(e.target.value)} placeholder="Courte description..." />
               </div>
               <div className="field">
+                <label>Univers culinaires</label>
+                <input type="text" value={bUnivers} onChange={e => setBUnivers(e.target.value)} placeholder="Thai · Méditerranée · Réconfort" />
+              </div>
+              <div className="field">
                 <label>Lien PDF</label>
                 <input type="text" value={bPdf} onChange={e => setBPdf(e.target.value)} placeholder="https://drive.google.com/..." />
               </div>
@@ -203,7 +208,7 @@ export default function AdminPage() {
                 <button className="btn-primary" style={{ marginTop: 0 }} onClick={saveBatch} disabled={saving}>
                   {saving ? '...' : editId ? 'Mettre à jour' : 'Ajouter le batch'}
                 </button>
-                {editId && <button className="btn-secondary" style={{ marginTop: 0 }} onClick={() => { setEditId(null); setBNum(''); setBTitle(''); setBDesc(''); setBPdf('') }}>Annuler</button>}
+                {editId && <button className="btn-secondary" style={{ marginTop: 0 }} onClick={() => { setEditId(null); setBNum(''); setBTitle(''); setBDesc(''); setBPdf(''); setBUnivers('') }}>Annuler</button>}
               </div>
             </div>
 
@@ -214,6 +219,7 @@ export default function AdminPage() {
                 <div>
                   <p className="batch-number">BATCH {b.batch_number}</p>
                   <p className="batch-title">{b.title}</p>
+                  {b.univers && <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{b.univers}</p>}
                   {b.pdf_url && <p style={{ fontSize: '12px', color: 'var(--color-green-text)', marginTop: '2px' }}>✓ PDF</p>}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
