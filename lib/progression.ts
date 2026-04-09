@@ -4,7 +4,7 @@ export function getMaxUnlockedBatch(startDate: string): number {
   const diffMs = today.getTime() - start.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   const weeksElapsed = Math.floor(diffDays / 7)
-  return Math.min((weeksElapsed + 1) * 2, 24)
+  return (weeksElapsed + 1) * 2
 }
 
 export function getCurrentBatches(startDate: string): [number, number] {

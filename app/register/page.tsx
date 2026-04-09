@@ -10,8 +10,8 @@ export default function RegisterPage() {
   const t = {
     fr: {
       title: 'Rejoindre EXQUILO',
-      subtitle: 'Accédez à votre programme structuré de 12 semaines.',
-      feature1: '24 batchs de repas sur 12 semaines',
+      subtitle: 'Nouveaux batches ajoutés chaque semaine.',
+      feature1: 'Batches de repas débloqués semaine après semaine',
       feature2: 'Progression automatique et guidée',
       feature3: 'Accès immédiat après paiement',
       cta: 'S\'abonner maintenant',
@@ -20,8 +20,8 @@ export default function RegisterPage() {
     },
     en: {
       title: 'Join EXQUILO',
-      subtitle: 'Access your structured 12-week program.',
-      feature1: '24 meal batches over 12 weeks',
+      subtitle: 'New batches added every week.',
+      feature1: 'Meal batches unlocked week after week',
       feature2: 'Automatic guided progression',
       feature3: 'Immediate access after payment',
       cta: 'Subscribe now',

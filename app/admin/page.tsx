@@ -185,7 +185,7 @@ export default function AdminPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '12px', marginBottom: '12px' }}>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <label>N°</label>
-                  <input type="number" min="1" max="24" value={bNum} onChange={e => setBNum(e.target.value)} placeholder="1" />
+                  <input type="number" min="1" value={bNum} onChange={e => setBNum(e.target.value)} placeholder="1" />
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <label>Titre</label>
@@ -212,7 +212,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <p className="section-label">Batchs existants ({batches.length}/24)</p>
+            <p className="section-label">Batchs existants ({batches.length})</p>
             {batches.length === 0 && <p className="empty-state">Aucun batch ajouté.</p>}
             {batches.map(b => (
               <div key={b.id} style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '14px 18px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>

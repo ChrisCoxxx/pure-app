@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (diffDays <= 0 || diffDays % 7 !== 0) continue
 
     const weeksElapsed = Math.floor(diffDays / 7)
-    const newMax = Math.min((weeksElapsed + 1) * 2, 24)
+    const newMax = (weeksElapsed + 1) * 2
     const batch1Num = newMax - 1
     const batch2Num = newMax
 

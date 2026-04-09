@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { getCurrentBatches, getArchiveBatches } from '@/lib/progression'
+import { getCurrentBatches, getArchiveBatches, getMaxUnlockedBatch } from '@/lib/progression'
 
 const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
@@ -93,10 +93,9 @@ export default function DashboardPage() {
   const initial = profile.email[0].toUpperCase()
 
   const weeksElapsed = Math.floor((Date.now() - new Date(profile.start_date).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
-  const currentWeek = Math.min(weeksElapsed, 12)
-  const totalWeeks = 12
-const progressPercent = Math.min((currentWeek / 24) * 100, 100)
-  const unlockedCount = Math.min(currentWeek * 2, 24)
+  const maxUnlocked = getMaxUnlockedBatch(profile.start_date)
+  const unlockedCount = batches.filter(b => b.batch_number <= maxUnlocked).length
+  const progressPercent = batches.length > 0 ? Math.min((unlockedCount / batches.length) * 100, 100) : 0
 
   return (
     <>
@@ -125,7 +124,7 @@ const progressPercent = Math.min((currentWeek / 24) * 100, 100)
       <div style={{ height: '3px', width: `${progressPercent}%`, background: 'var(--color-text-secondary)', borderRadius: '4px' }} />
     </div>
     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-      <span style={{ fontWeight: 500 }}>{t.weekLabel} {currentWeek}</span>
+      <span style={{ fontWeight: 500 }}>{t.weekLabel} {weeksElapsed}</span>
       <span>{unlockedCount} {t.batchesUnlocked}</span>
     </div>
   </div>
