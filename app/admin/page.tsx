@@ -11,7 +11,7 @@ type Member = { id: string; email: string; is_active: boolean; start_date: strin
 
 export default function AdminPage() {
   const router = useRouter()
-  const [tab, setTab] = useState<'batches' | 'members'>('batches')
+  const [tab, setTab] = useState<'batches' | 'members' | 'notifications'>('batches')
   const [batches, setBatches] = useState<Batch[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,6 +35,11 @@ export default function AdminPage() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteFirstName, setInviteFirstName] = useState('')
   const [inviting, setInviting] = useState(false)
+
+  const [notifTitle, setNotifTitle] = useState('')
+  const [notifBody, setNotifBody] = useState('')
+  const [notifUrl, setNotifUrl] = useState('/dashboard')
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -154,6 +159,32 @@ export default function AdminPage() {
     await fetchAll(supabase)
   }
 
+  async function sendPush() {
+    if (!notifTitle || !notifBody) { flash('Titre et message requis.', 'error'); return }
+    setSending(true)
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { flash('Non authentifié.', 'error'); setSending(false); return }
+
+    const res = await fetch('/api/push/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ title: notifTitle, body: notifBody, url: notifUrl }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      flash(`Erreur : ${data.error}`, 'error')
+    } else {
+      flash(`✅ Envoyé à ${data.sent} appareil(s). (${data.failed} échec(s))`)
+      setNotifTitle('')
+      setNotifBody('')
+    }
+    setSending(false)
+  }
+
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>Chargement...</div>
 
   return (
@@ -176,6 +207,7 @@ export default function AdminPage() {
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
           <button className={`lang-btn ${tab === 'batches' ? 'active' : ''}`} style={{ padding: '8px 18px', fontSize: '14px' }} onClick={() => setTab('batches')}>Batchs ({batches.length})</button>
           <button className={`lang-btn ${tab === 'members' ? 'active' : ''}`} style={{ padding: '8px 18px', fontSize: '14px' }} onClick={() => setTab('members')}>Membres ({members.length})</button>
+          <button className={`lang-btn ${tab === 'notifications' ? 'active' : ''}`} style={{ padding: '8px 18px', fontSize: '14px' }} onClick={() => setTab('notifications')}>Notifications</button>
         </div>
 
         {tab === 'batches' && (
@@ -301,6 +333,31 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
+          </>
+        )}
+        {tab === 'notifications' && (
+          <>
+            <p className="section-label" style={{ marginTop: 0 }}>Envoyer une notification push</p>
+            <div style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px', marginBottom: '24px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '14px' }}>
+                Envoie une notification à tous les membres qui ont activé les notifications.
+              </p>
+              <div className="field">
+                <label>Titre</label>
+                <input type="text" value={notifTitle} onChange={e => setNotifTitle(e.target.value)} placeholder="Votre programme vous attend 🍽️" />
+              </div>
+              <div className="field">
+                <label>Message</label>
+                <input type="text" value={notifBody} onChange={e => setNotifBody(e.target.value)} placeholder="Un nouveau batch est disponible." />
+              </div>
+              <div className="field">
+                <label>URL cible</label>
+                <input type="text" value={notifUrl} onChange={e => setNotifUrl(e.target.value)} />
+              </div>
+              <button className="btn-primary" style={{ marginTop: 0 }} onClick={sendPush} disabled={sending}>
+                {sending ? '...' : 'Envoyer à tous'}
+              </button>
+            </div>
           </>
         )}
       </div>

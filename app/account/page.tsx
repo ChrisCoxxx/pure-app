@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { getCurrentBatches } from '@/lib/progression'
+import PushToggle from '@/components/PushToggle'
 
 function AccountContent() {
   const router = useRouter()
@@ -159,6 +160,8 @@ function AccountContent() {
             <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => handleLanguageChange('en')}>EN</button>
           </div>
         </div>
+
+        <PushToggle lang={lang} />
 
         {pwSuccess && <p className="success-msg" style={{ marginTop: '16px' }}>{pwSuccess}</p>}
 
