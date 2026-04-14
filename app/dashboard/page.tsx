@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { getCurrentBatches, getArchiveBatches, getMaxUnlockedBatch } from '@/lib/progression'
+import InstallBanner from '@/components/InstallBanner'
 
 const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
@@ -129,6 +130,8 @@ export default function DashboardPage() {
     </div>
   </div>
 </div>
+
+      <InstallBanner lang={lang} />
 
       <div className="page-container">
         <p className="section-label">{t.currentTitle}</p>
