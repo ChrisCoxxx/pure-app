@@ -12,30 +12,37 @@ export default function SetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
   const [lang, setLang] = useState<'fr' | 'en'>('fr')
+  const [isReset, setIsReset] = useState(false)
 
   const t = {
     fr: {
-      title: 'Créer votre mot de passe',
-      subtitle: 'Bienvenue sur EXQUILO. Complétez votre profil pour accéder à votre programme.',
+      titleInvite: 'Créer votre mot de passe',
+      titleReset: 'Nouveau mot de passe',
+      subtitleInvite: 'Bienvenue sur EXQUILO. Complétez votre profil pour accéder à votre programme.',
+      subtitleReset: 'Choisissez un nouveau mot de passe pour votre compte.',
       firstName: 'Prénom',
       password: 'Mot de passe',
       confirm: 'Confirmer le mot de passe',
-      submit: 'Accéder à mon programme',
+      submitInvite: 'Accéder à mon programme',
+      submitReset: 'Mettre à jour le mot de passe',
       mismatch: 'Les mots de passe ne correspondent pas.',
       short: 'Minimum 6 caractères.',
-      error: 'Lien expiré. Contactez votre administrateur.',
+      error: 'Lien expiré. Demandez un nouveau lien depuis la page de connexion.',
       waiting: 'Vérification du lien...',
     },
     en: {
-      title: 'Create your password',
-      subtitle: 'Welcome to EXQUILO. Complete your profile to access your program.',
+      titleInvite: 'Create your password',
+      titleReset: 'New password',
+      subtitleInvite: 'Welcome to EXQUILO. Complete your profile to access your program.',
+      subtitleReset: 'Choose a new password for your account.',
       firstName: 'First name',
       password: 'Password',
       confirm: 'Confirm password',
-      submit: 'Access my program',
+      submitInvite: 'Access my program',
+      submitReset: 'Update password',
       mismatch: 'Passwords do not match.',
       short: 'Minimum 6 characters.',
-      error: 'Link expired. Please contact your administrator.',
+      error: 'Link expired. Request a new link from the login page.',
       waiting: 'Verifying link...',
     },
   }[lang]
@@ -47,9 +54,11 @@ export default function SetPasswordPage() {
     const refreshToken = hashParams.get('refresh_token')
 
     if (accessToken && refreshToken) {
+      const type = hashParams.get('type')
+      if (type === 'recovery') setIsReset(true)
       supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
         .then(({ error }) => {
-          if (error) setError('Lien expiré. Contactez votre administrateur.')
+          if (error) setError(t.error)
           else setSessionReady(true)
         })
     } else {
@@ -88,19 +97,25 @@ export default function SetPasswordPage() {
           </div>
         </div>
 
-        <h1 style={{ fontSize: '20px', fontWeight: 500, marginBottom: '8px' }}>{t.title}</h1>
-        <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '28px', lineHeight: '1.5' }}>{t.subtitle}</p>
+        <h1 style={{ fontSize: '20px', fontWeight: 500, marginBottom: '8px' }}>
+          {isReset ? t.titleReset : t.titleInvite}
+        </h1>
+        <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '28px', lineHeight: '1.5' }}>
+          {isReset ? t.subtitleReset : t.subtitleInvite}
+        </p>
 
         {!sessionReady && !error && (
           <p style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', marginBottom: '20px' }}>{t.waiting}</p>
         )}
 
-        <div className="field">
-          <label>{t.firstName}</label>
-          <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
-            placeholder={lang === 'fr' ? 'Votre prénom' : 'Your first name'}
-            disabled={!sessionReady} />
-        </div>
+        {!isReset && (
+          <div className="field">
+            <label>{t.firstName}</label>
+            <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
+              placeholder={lang === 'fr' ? 'Votre prénom' : 'Your first name'}
+              disabled={!sessionReady} />
+          </div>
+        )}
         <div className="field">
           <label>{t.password}</label>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)}
@@ -115,7 +130,7 @@ export default function SetPasswordPage() {
         {error && <p className="error-msg">{error}</p>}
 
         <button className="btn-primary" onClick={handleSubmit} disabled={loading || !sessionReady}>
-          {loading ? '...' : t.submit}
+          {loading ? '...' : isReset ? t.submitReset : t.submitInvite}
         </button>
       </div>
     </div>

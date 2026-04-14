@@ -37,7 +37,7 @@ export default function LoginPage() {
   async function handleForgot() {
     if (!email) { setError(lang === 'fr' ? 'Entrez votre email d\'abord.' : 'Enter your email first.'); return }
     const supabase = createClient()
-    await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/account?reset=1` })
+    await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/set-password` })
     setResetSent(true)
     setError('')
   }
