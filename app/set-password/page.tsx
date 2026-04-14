@@ -49,11 +49,26 @@ export default function SetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient()
+
+    // Flux PKCE (Supabase récent) : ?code= dans la query string
+    const searchParams = new URLSearchParams(window.location.search)
+    const code = searchParams.get('code')
+
+    // Flux implicite (ancien) : #access_token= dans le hash
     const hashParams = new URLSearchParams(window.location.hash.substring(1))
     const accessToken = hashParams.get('access_token')
     const refreshToken = hashParams.get('refresh_token')
 
-    if (accessToken && refreshToken) {
+    if (code) {
+      // PKCE — toujours un reset (les invitations utilisent le flux implicite)
+      setIsReset(true)
+      supabase.auth.exchangeCodeForSession(code)
+        .then(({ error }) => {
+          if (error) setError(t.error)
+          else setSessionReady(true)
+        })
+    } else if (accessToken && refreshToken) {
+      // Flux implicite — invite ou recovery
       const type = hashParams.get('type')
       if (type === 'recovery') setIsReset(true)
       supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
@@ -62,10 +77,8 @@ export default function SetPasswordPage() {
           else setSessionReady(true)
         })
     } else {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) setSessionReady(true)
-        else setError('Lien expiré. Contactez votre administrateur.')
-      })
+      // Aucun token → lien invalide
+      setError(t.error)
     }
   }, [])
 
