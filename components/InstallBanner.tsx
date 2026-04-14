@@ -35,6 +35,8 @@ export default function InstallBanner({ lang }: Props) {
   useEffect(() => {
     // Déjà installé → on n'affiche rien
     if (window.matchMedia('(display-mode: standalone)').matches) return
+    // Desktop → on n'affiche rien (bannière mobile uniquement)
+    if (!window.matchMedia('(max-width: 768px)').matches) return
     // Déjà refusé cette session
     if (sessionStorage.getItem('install-dismissed')) return
 
