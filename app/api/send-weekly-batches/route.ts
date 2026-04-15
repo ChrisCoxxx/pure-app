@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import WeeklyBatchesEmail from '@/emails/WeeklyBatchesEmail'
+import { render } from '@react-email/components'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -50,16 +51,17 @@ export async function POST(req: NextRequest) {
     const batch2Data = batches[1]
     const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.exquilo.com'}/dashboard`
     try {
+      const html = await render(WeeklyBatchesEmail({
+        firstName: 'Christophe',
+        batch1: { title: batch1Data.title, univers: batch1Data.univers ?? '', number: batch1Data.batch_number },
+        batch2: { title: batch2Data.title, univers: batch2Data.univers ?? '', number: batch2Data.batch_number },
+        dashboardUrl,
+      }))
       await resend.emails.send({
         from: 'EXQUILO <hello@exquilo.com>',
         to: ADMIN_EMAIL,
         subject: `[TEST] Vos 2 nouveaux batches sont prêts 🍳`,
-        react: WeeklyBatchesEmail({
-          firstName: 'Christophe',
-          batch1: { title: batch1Data.title, univers: batch1Data.univers ?? '', number: batch1Data.batch_number },
-          batch2: { title: batch2Data.title, univers: batch2Data.univers ?? '', number: batch2Data.batch_number },
-          dashboardUrl,
-        }),
+        html,
       })
       return NextResponse.json({ processed: 1, results: [{ email: ADMIN_EMAIL, status: 'sent' }] })
     } catch (err) {
@@ -101,16 +103,17 @@ export async function POST(req: NextRequest) {
       : `Vos 2 nouveaux batches sont prêts 🍳`
 
     try {
+      const html = await render(WeeklyBatchesEmail({
+        firstName: firstName || 'vous',
+        batch1: { title: batch1Data.title, univers: batch1Data.univers ?? '', number: newMax - 1 },
+        batch2: { title: batch2Data.title, univers: batch2Data.univers ?? '', number: newMax },
+        dashboardUrl,
+      }))
       await resend.emails.send({
         from: 'EXQUILO <hello@exquilo.com>',
         to: member.email,
         subject,
-        react: WeeklyBatchesEmail({
-          firstName: firstName || 'vous',
-          batch1: { title: batch1Data.title, univers: batch1Data.univers ?? '', number: newMax - 1 },
-          batch2: { title: batch2Data.title, univers: batch2Data.univers ?? '', number: newMax },
-          dashboardUrl,
-        }),
+        html,
       })
       results.push({ email: member.email, status: 'sent' })
     } catch (err) {
