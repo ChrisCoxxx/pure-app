@@ -159,6 +159,35 @@ export default function AdminPage() {
     await fetchAll(supabase)
   }
 
+  async function togglePublished(id: string, current: boolean) {
+    const supabase = createClient()
+    await supabase.from('batches').update({ is_published: !current }).eq('id', id)
+    await fetchAll(supabase)
+    flash(current ? 'Batch dépublié.' : '✅ Batch publié !')
+  }
+
+  async function testEmail() {
+    setSending(true)
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { flash('Non authentifié.', 'error'); setSending(false); return }
+    const res = await fetch('/api/send-weekly-batches', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+        'x-force-test': '1',
+      },
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      flash(`Erreur : ${data.error}`, 'error')
+    } else {
+      flash(`✅ Test envoyé — ${data.processed} membre(s) traité(s). Vérifie les boîtes mail.`)
+    }
+    setSending(false)
+  }
+
   async function sendPush() {
     if (!notifTitle || !notifBody) { flash('Titre et message requis.', 'error'); return }
     setSending(true)
@@ -253,8 +282,15 @@ export default function AdminPage() {
                   <p className="batch-title">{b.title}</p>
                   {b.univers && <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{b.univers}</p>}
                   {b.pdf_url && <p style={{ fontSize: '12px', color: 'var(--color-green-text)', marginTop: '2px' }}>✓ PDF</p>}
+                  <p style={{ fontSize: '12px', marginTop: '3px', color: b.is_published ? 'var(--color-green-text)' : 'var(--color-text-tertiary)' }}>
+                    {b.is_published ? '● Publié' : '○ Non publié'}
+                  </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="lang-btn" onClick={() => togglePublished(b.id, b.is_published)}
+                    style={b.is_published ? { color: 'var(--color-text-tertiary)' } : { color: 'var(--color-green-text)' }}>
+                    {b.is_published ? 'Dépublier' : 'Publier'}
+                  </button>
                   <button className="lang-btn" onClick={() => editBatch(b)}>Modifier</button>
                   <button className="lang-btn" style={{ color: '#c0392b' }} onClick={() => deleteBatch(b.id)}>Supprimer</button>
                 </div>
@@ -356,6 +392,16 @@ export default function AdminPage() {
               </div>
               <button className="btn-primary" style={{ marginTop: 0 }} onClick={sendPush} disabled={sending}>
                 {sending ? '...' : 'Envoyer à tous'}
+              </button>
+            </div>
+
+            <p className="section-label">Tester l'email hebdomadaire</p>
+            <div style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '14px' }}>
+                Envoie immédiatement l'email des nouveaux batches à tous les membres actifs, quel que soit leur jour de progression. Utile pour vérifier que Resend fonctionne.
+              </p>
+              <button className="btn-secondary" style={{ marginTop: 0 }} onClick={testEmail} disabled={sending}>
+                {sending ? '...' : '📧 Tester l\'envoi email'}
               </button>
             </div>
           </>

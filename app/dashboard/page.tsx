@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { getCurrentBatches, getArchiveBatches, getMaxUnlockedBatch } from '@/lib/progression'
-import InstallBanner from '@/components/InstallBanner'
 
 const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
@@ -131,10 +130,11 @@ export default function DashboardPage() {
   </div>
 </div>
 
-      <InstallBanner lang={lang} />
-
       <div className="page-container">
         <p className="section-label">{t.currentTitle}</p>
+        {currentBatches.length === 0 && (
+          <p className="empty-state">{lang === 'fr' ? 'Bientôt disponible — reviens la semaine prochaine.' : 'Coming soon — check back next week.'}</p>
+        )}
         {currentBatches.map(b => (
           <Link key={b.id} href={`/batch/${b.batch_number}`} className="card current">
             <div>

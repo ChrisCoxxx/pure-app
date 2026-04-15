@@ -10,12 +10,25 @@ const supabaseAdmin = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
+const ADMIN_EMAIL = 'chris.cdr@gmail.com'
+
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const token = authHeader?.replace('Bearer ', '')
+
+  // Accepte soit le CRON_SECRET (Vercel cron) soit un access_token admin
+  const isCron = token === process.env.CRON_SECRET
+  let isAdmin = false
+  if (!isCron && token) {
+    const { data: { user } } = await supabaseAdmin.auth.getUser(token)
+    isAdmin = user?.email === ADMIN_EMAIL
+  }
+  if (!isCron && !isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // En mode test admin : on force today à demain pour ignorer le filtre jour exact
+  const forceTest = req.headers.get('x-force-test') === '1'
   const today = new Date()
 
   const { data: members, error: membersError } = await supabaseAdmin
@@ -46,8 +59,8 @@ export async function POST(req: NextRequest) {
     const diffMs = today.getTime() - start.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-    // Send on unlock days: day 7, 14, 21... (not day 0 — that's the start day)
-    if (diffDays <= 0 || diffDays % 7 !== 0) continue
+    // Send on unlock days: day 7, 14, 21... (skip filter in force-test mode)
+    if (!forceTest && (diffDays <= 0 || diffDays % 7 !== 0)) continue
 
     const weeksElapsed = Math.floor(diffDays / 7)
     const newMax = (weeksElapsed + 1) * 2

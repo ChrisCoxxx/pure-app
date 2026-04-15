@@ -33,8 +33,10 @@ export default function InstallBanner({ lang }: Props) {
   }[lang]
 
   useEffect(() => {
-    // Déjà installé → on n'affiche rien
+    // Déjà installé en mode standalone (app ouverte depuis l'écran d'accueil)
     if (window.matchMedia('(display-mode: standalone)').matches) return
+    // Déjà installé (mémorisé lors de l'installation)
+    if (localStorage.getItem('pwa-installed')) return
     // Desktop → on n'affiche rien (bannière mobile uniquement)
     if (!window.matchMedia('(max-width: 768px)').matches) return
     // Déjà refusé cette session
@@ -53,7 +55,10 @@ export default function InstallBanner({ lang }: Props) {
       setDeferredPrompt(e as Event & { prompt: () => Promise<void> })
     }
     window.addEventListener('beforeinstallprompt', handler)
-    window.addEventListener('appinstalled', () => setVisible(false))
+    window.addEventListener('appinstalled', () => {
+      localStorage.setItem('pwa-installed', '1')
+      setVisible(false)
+    })
 
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
