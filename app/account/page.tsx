@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { getCurrentBatches } from '@/lib/progression'
 import PushToggle from '@/components/PushToggle'
-import InstallBanner from '@/components/InstallBanner'
 
 function AccountContent() {
   const router = useRouter()
@@ -161,8 +160,6 @@ function AccountContent() {
             <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => handleLanguageChange('en')}>EN</button>
           </div>
         </div>
-
-        <InstallBanner lang={lang} />
 
         <PushToggle lang={lang} />
 

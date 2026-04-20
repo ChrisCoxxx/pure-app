@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import InstallBanner from '@/components/InstallBanner'
 import { createClient } from '@/lib/supabase'
 import { getCurrentBatches, getArchiveBatches, getMaxUnlockedBatch } from '@/lib/progression'
 
@@ -83,7 +84,7 @@ export default function DashboardPage() {
     load()
   }, [router])
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: "'Playfair Display', serif", fontWeight: 900, letterSpacing: '-0.02em', fontSize: '28px' }}><span style={{color:'#C8603A'}}>EX</span><span style={{color:'var(--color-text-tertiary)'}}>QUILO</span></div>
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: "'Playfair Display', serif", fontWeight: 900, letterSpacing: '-0.02em', fontSize: '28px', background: 'var(--color-bg-tertiary)' }}><span style={{color:'#C8603A'}}>EX</span><span style={{color:'var(--color-text-tertiary)'}}>QUILO</span></div>
   if (!profile) return null
 
   const [cur1, cur2] = getCurrentBatches(profile.start_date)
@@ -99,7 +100,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <nav className="nav">
+      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: '56px', background: 'transparent' }}>
         <span className="nav-logo"><span style={{color:'#C8603A'}}>EX</span>QUILO</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {isAdmin && (
@@ -111,46 +112,53 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-<div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px 20px 0' }}>
-  <div style={{ background: 'var(--color-bg-secondary)', border: '0.5px solid var(--color-border)', borderRadius: '16px', padding: '20px' }}>
-    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{t.greeting}</p>
+<div style={{ maxWidth: '480px', margin: '0 auto', padding: '4px 20px 0' }}>
+  <div style={{ background: 'var(--color-bg-secondary)', border: '1px solid rgba(200,96,58,0.15)', borderRadius: '18px', padding: '24px 24px 20px', position: 'relative', overflow: 'hidden' }}>
+    {/* Decorative circle */}
+    <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '130px', height: '130px', borderRadius: '50%', background: '#F0D5C8', opacity: 0.45, pointerEvents: 'none', zIndex: 0 }} />
+    <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '2px', letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 500, position: 'relative', zIndex: 1 }}>{t.greeting}</p>
     {firstName && (
-      <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--color-text)', marginBottom: '6px' }}>{firstName}</p>
+      <p style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: 900, color: 'var(--color-text)', marginBottom: '10px', lineHeight: 1.1, position: 'relative', zIndex: 1 }}>{firstName}</p>
     )}
-    <p style={{ fontSize: '13px', color: 'var(--color-text-tertiary)', fontStyle: 'italic', marginBottom: '16px' }}>
-      {subtitle}
+    <p style={{ fontSize: '13px', color: '#C8603A', fontStyle: 'italic', marginBottom: '20px', lineHeight: 1.5, position: 'relative', zIndex: 1 }}>
+      &ldquo;{subtitle}&rdquo;
     </p>
-    <div style={{ height: '3px', background: 'var(--color-border)', borderRadius: '4px', marginBottom: '8px' }}>
-      <div style={{ height: '3px', width: `${progressPercent}%`, background: 'var(--color-text-secondary)', borderRadius: '4px' }} />
+    <div style={{ height: '5px', background: 'rgba(44,44,42,0.1)', borderRadius: '6px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+      <div style={{ height: '5px', width: `${progressPercent}%`, background: 'linear-gradient(90deg, #C8603A, #E8845F)', borderRadius: '6px' }} />
     </div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-secondary)', position: 'relative', zIndex: 1 }}>
       <span style={{ fontWeight: 500 }}>{t.weekLabel} {weeksElapsed}</span>
       <span>{unlockedCount} {t.batchesUnlocked}</span>
     </div>
   </div>
 </div>
 
-      <div className="page-container">
-        <p className="section-label">{t.currentTitle}</p>
+<InstallBanner lang={lang} />
+
+      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px 20px 0' }}>
+        <p className="section-label" style={{ marginTop: 0 }}>{t.currentTitle}</p>
         {currentBatches.length === 0 && (
           <p className="empty-state">{lang === 'fr' ? 'Bientôt disponible — reviens la semaine prochaine.' : 'Coming soon — check back next week.'}</p>
         )}
         {currentBatches.map(b => (
-          <Link key={b.id} href={`/batch/${b.batch_number}`} className="card current">
+          <Link key={b.id} href={`/batch/${b.batch_number}`} style={{ background: 'var(--color-bg-secondary)', border: '1px solid rgba(200,96,58,0.18)', borderLeft: '2.5px solid #C8603A', borderRadius: '14px', padding: '16px 18px', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
             <div>
               <p className="batch-number">{t.batchLabel} {b.batch_number}</p>
               <p className="batch-title">{b.title}</p>
               {b.univers && <p className="batch-subtitle">{b.univers}</p>}
             </div>
-            <span className="badge-current">{t.badgeCurrent}</span>
+            <span style={{ fontSize: '11px', fontWeight: 500, padding: '5px 12px', background: '#C8603A', color: '#fff', borderRadius: '20px', flexShrink: 0 }}>{t.badgeCurrent}</span>
           </Link>
         ))}
+      </div>
 
-        <p className="section-label">{t.archivesTitle}</p>
+      {/* Archives on white sheet */}
+      <div style={{ maxWidth: '480px', margin: '12px auto 0', background: '#ffffff', borderRadius: '16px 16px 0 0', padding: '20px 20px 60px', boxShadow: '0 -1px 12px rgba(0,0,0,0.05)' }}>
+        <p className="section-label" style={{ marginTop: 0 }}>{t.archivesTitle}</p>
         {archiveBatches.length === 0
           ? <p className="empty-state">{t.noArchives}</p>
-          : archiveBatches.map(b => (
-            <Link key={b.id} href={`/batch/${b.batch_number}`} className="card">
+          : archiveBatches.map((b, i) => (
+            <Link key={b.id} href={`/batch/${b.batch_number}`} style={{ padding: '14px 0', borderBottom: i < archiveBatches.length - 1 ? '0.5px solid var(--color-border)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
               <div>
                 <p className="batch-number">{t.batchLabel} {b.batch_number}</p>
                 <p className="batch-title">{b.title}</p>

@@ -39,8 +39,12 @@ export default function InstallBanner({ lang }: Props) {
     if (localStorage.getItem('pwa-installed')) return
     // Desktop → on n'affiche rien (bannière mobile uniquement)
     if (!window.matchMedia('(max-width: 768px)').matches) return
-    // Déjà refusé cette session
-    if (sessionStorage.getItem('install-dismissed')) return
+    // Déjà refusé (persistant)
+    if (localStorage.getItem('install-dismissed')) return
+    // Affiché trop de fois déjà
+    const shown = parseInt(localStorage.getItem('install-shown-count') || '0')
+    if (shown >= 3) return
+    localStorage.setItem('install-shown-count', String(shown + 1))
 
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) &&
       !(window.navigator as { standalone?: boolean }).standalone
@@ -64,7 +68,7 @@ export default function InstallBanner({ lang }: Props) {
   }, [])
 
   function dismiss() {
-    sessionStorage.setItem('install-dismissed', '1')
+    localStorage.setItem('install-dismissed', '1')
     setVisible(false)
     setShowGuide(false)
   }
