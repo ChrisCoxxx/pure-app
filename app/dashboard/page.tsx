@@ -152,18 +152,18 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Archives on white sheet */}
-      <div style={{ maxWidth: '480px', margin: '12px auto 0', background: '#ffffff', borderRadius: '16px 16px 0 0', padding: '20px 20px 60px', boxShadow: '0 -1px 12px rgba(0,0,0,0.05)' }}>
-        <p className="section-label" style={{ marginTop: 0 }}>{t.archivesTitle}</p>
+      {/* Archives on white sheet — muted, receded */}
+      <div style={{ maxWidth: '480px', margin: '12px auto 0', background: 'rgba(255,255,255,0.6)', borderRadius: '16px 16px 0 0', padding: '16px 20px 60px' }}>
+        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.08em', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', marginBottom: '4px', opacity: 0.7 }}>{t.archivesTitle}</p>
         {archiveBatches.length === 0
           ? <p className="empty-state">{t.noArchives}</p>
           : archiveBatches.map((b, i) => (
-            <Link key={b.id} href={`/batch/${b.batch_number}`} style={{ padding: '14px 0', borderBottom: i < archiveBatches.length - 1 ? '0.5px solid var(--color-border)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
+            <Link key={b.id} href={`/batch/${b.batch_number}`} style={{ padding: '11px 0', borderBottom: i < archiveBatches.length - 1 ? '0.5px solid var(--color-border)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', cursor: 'pointer', opacity: 0.65 }}>
               <div>
-                <p className="batch-number">{t.batchLabel} {b.batch_number}</p>
-                <p className="batch-title">{b.title}</p>
+                <p style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginBottom: '1px', letterSpacing: '0.04em' }}>{t.batchLabel} {b.batch_number}</p>
+                <p style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-text-secondary)' }}>{b.title}</p>
               </div>
-              <span className="card-arrow">→</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>→</span>
             </Link>
           ))
         }
