@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -10,6 +11,9 @@ function AccountContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isReset = searchParams.get('reset') === '1'
+  const stripePortalUrl =
+    process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL ||
+    'https://billing.stripe.com/p/login/4gM8wQbW9e6dgrJ6vB0gw00'
 
   const [email, setEmail] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -27,69 +31,161 @@ function AccountContent() {
 
   const t = {
     fr: {
-      title: 'Mon compte', email: 'Email', firstName: 'Prénom', status: 'Statut',
-      active: 'Actif', inactive: 'Inactif', startDate: 'Début du programme',
-      currentBatch: 'Batch actuel', changePassword: 'Changer le mot de passe',
-      logout: 'Se déconnecter', newPassword: 'Nouveau mot de passe',
-      confirmPassword: 'Confirmer', save: 'Enregistrer', savedOk: 'Prénom enregistré.',
+      title: 'Mon compte',
+      email: 'Email',
+      firstName: 'Prénom',
+      status: 'Statut',
+      active: 'Actif',
+      inactive: 'Inactif',
+      startDate: 'Début du programme',
+      currentBatch: 'Batch actuel',
+      changePassword: 'Changer le mot de passe',
+      logout: 'Se déconnecter',
+      newPassword: 'Nouveau mot de passe',
+      confirmPassword: 'Confirmer',
+      save: 'Enregistrer',
+      savedOk: 'Prénom enregistré.',
       passwordMismatch: 'Les mots de passe ne correspondent pas.',
-      passwordUpdated: 'Mot de passe mis à jour.', language: 'Langue', back: '← Retour',
+      passwordUpdated: 'Mot de passe mis à jour.',
+      language: 'Langue',
+      back: '← Retour',
+      subscriptionTitle: 'Abonnement EXQUILO',
+      subscriptionText:
+        'Gérez votre moyen de paiement, vos factures ou votre abonnement.',
+      manageSubscription: 'Gérer mon abonnement',
+      portalUnavailable: 'Portail bientôt disponible',
+      cancel: 'Annuler',
+      passwordMin: 'Minimum 6 caractères.',
     },
     en: {
-      title: 'My account', email: 'Email', firstName: 'First name', status: 'Status',
-      active: 'Active', inactive: 'Inactive', startDate: 'Program start date',
-      currentBatch: 'Current batch', changePassword: 'Change password',
-      logout: 'Sign out', newPassword: 'New password',
-      confirmPassword: 'Confirm', save: 'Save', savedOk: 'First name saved.',
+      title: 'My account',
+      email: 'Email',
+      firstName: 'First name',
+      status: 'Status',
+      active: 'Active',
+      inactive: 'Inactive',
+      startDate: 'Program start date',
+      currentBatch: 'Current batch',
+      changePassword: 'Change password',
+      logout: 'Sign out',
+      newPassword: 'New password',
+      confirmPassword: 'Confirm',
+      save: 'Save',
+      savedOk: 'First name saved.',
       passwordMismatch: 'Passwords do not match.',
-      passwordUpdated: 'Password updated.', language: 'Language', back: '← Back',
+      passwordUpdated: 'Password updated.',
+      language: 'Language',
+      back: '← Back',
+      subscriptionTitle: 'EXQUILO subscription',
+      subscriptionText:
+        'Manage your payment method, invoices or subscription.',
+      manageSubscription: 'Manage my subscription',
+      portalUnavailable: 'Portal coming soon',
+      cancel: 'Cancel',
+      passwordMin: 'Minimum 6 characters.',
     },
   }[lang]
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.replace('/login'); return }
-      const { data: prof } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
-      setEmail(session.user.email!)
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session) {
+        router.replace('/login')
+        return
+      }
+
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+
+      setEmail(session.user.email || '')
       setIsActive(prof?.is_active || false)
       setLang(prof?.lang || 'fr')
       setFirstName(prof?.first_name || '')
+
       if (prof?.start_date) {
-        setStartDate(new Date(prof.start_date).toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' }))
+        setStartDate(
+          new Date(prof.start_date).toLocaleDateString('fr-BE', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })
+        )
+
         const [cur1, cur2] = getCurrentBatches(prof.start_date)
         setCurrentBatch(`${cur1} & ${cur2}`)
       }
     }
+
     load()
   }, [router])
 
   async function handleSaveFirstName() {
     const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
     if (!session) return
-    await supabase.from('profiles').update({ first_name: firstName.trim() }).eq('id', session.user.id)
+
+    await supabase
+      .from('profiles')
+      .update({ first_name: firstName.trim() })
+      .eq('id', session.user.id)
+
     setFirstNameSaved(true)
     setTimeout(() => setFirstNameSaved(false), 3000)
   }
 
   async function handleLanguageChange(newLang: 'fr' | 'en') {
     setLang(newLang)
+
     const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) await supabase.from('profiles').update({ lang: newLang }).eq('id', session.user.id)
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (session) {
+      await supabase
+        .from('profiles')
+        .update({ lang: newLang })
+        .eq('id', session.user.id)
+    }
   }
 
   async function handlePasswordChange() {
     setPwError('')
     setPwSuccess('')
-    if (newPassword !== confirmPassword) { setPwError(t.passwordMismatch); return }
-    if (newPassword.length < 6) { setPwError(lang === 'fr' ? 'Minimum 6 caractères.' : 'Minimum 6 characters.'); return }
+
+    if (newPassword !== confirmPassword) {
+      setPwError(t.passwordMismatch)
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setPwError(t.passwordMin)
+      return
+    }
+
     setLoading(true)
+
     const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
-    if (error) { setPwError(error.message); setLoading(false); return }
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    })
+
+    if (error) {
+      setPwError(error.message)
+      setLoading(false)
+      return
+    }
+
     setPwSuccess(t.passwordUpdated)
     setNewPassword('')
     setConfirmPassword('')
@@ -106,30 +202,65 @@ function AccountContent() {
   return (
     <>
       <nav className="nav">
-        <Link href="/dashboard" className="nav-back">{t.back}</Link>
-        <span className="nav-logo"><span style={{color:'#C8603A'}}>EX</span>QUILO</span>
+        <Link href="/dashboard" className="nav-back">
+          {t.back}
+        </Link>
+
+        <span className="nav-logo">
+          <span style={{ color: '#C8603A' }}>EX</span>QUILO
+        </span>
+
         <div style={{ width: 32 }} />
       </nav>
+
       <div className="page-container">
-        <p className="section-label" style={{ marginTop: 0 }}>{t.title}</p>
+        <p className="section-label" style={{ marginTop: 0 }}>
+          {t.title}
+        </p>
 
         <div className="account-row">
           <span className="account-label">{t.email}</span>
           <span className="account-value">{email}</span>
         </div>
 
-        <div className="account-row" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '8px' }}>
+        <div
+          className="account-row"
+          style={{
+            alignItems: 'flex-start',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
           <span className="account-label">{t.firstName}</span>
+
           <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
             <input
               type="text"
               value={firstName}
-              onChange={e => setFirstName(e.target.value)}
+              onChange={(e) => setFirstName(e.target.value)}
               placeholder={lang === 'fr' ? 'Votre prénom' : 'Your first name'}
-              style={{ flex: 1, padding: '10px 12px', fontSize: '14px', border: '0.5px solid var(--color-border-medium)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg)', color: 'var(--color-text)', outline: 'none' }}
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                fontSize: '14px',
+                border: '0.5px solid var(--color-border-medium)',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--color-bg)',
+                color: 'var(--color-text)',
+                outline: 'none',
+              }}
             />
-            <button className="btn-primary" onClick={handleSaveFirstName}
-              style={{ marginTop: 0, width: 'auto', padding: '10px 16px', fontSize: '14px' }}>
+
+            <button
+              className="btn-primary"
+              onClick={handleSaveFirstName}
+              style={{
+                marginTop: 0,
+                width: 'auto',
+                padding: '10px 16px',
+                fontSize: '14px',
+              }}
+            >
               {firstNameSaved ? '✓' : t.save}
             </button>
           </div>
@@ -137,57 +268,154 @@ function AccountContent() {
 
         <div className="account-row">
           <span className="account-label">{t.status}</span>
-          <span className="account-value" style={{ color: isActive ? 'var(--color-green-text)' : 'var(--color-text-tertiary)' }}>
+          <span
+            className="account-value"
+            style={{
+              color: isActive
+                ? 'var(--color-green-text)'
+                : 'var(--color-text-tertiary)',
+            }}
+          >
             {isActive ? t.active : t.inactive}
           </span>
         </div>
+
         {startDate && (
           <div className="account-row">
             <span className="account-label">{t.startDate}</span>
             <span className="account-value">{startDate}</span>
           </div>
         )}
+
         {currentBatch && (
           <div className="account-row">
             <span className="account-label">{t.currentBatch}</span>
             <span className="account-value">{currentBatch}</span>
           </div>
         )}
+
         <div className="account-row">
           <span className="account-label">{t.language}</span>
+
           <div className="lang-toggle">
-            <button className={`lang-btn ${lang === 'fr' ? 'active' : ''}`} onClick={() => handleLanguageChange('fr')}>FR</button>
-            <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => handleLanguageChange('en')}>EN</button>
+            <button
+              className={`lang-btn ${lang === 'fr' ? 'active' : ''}`}
+              onClick={() => handleLanguageChange('fr')}
+            >
+              FR
+            </button>
+
+            <button
+              className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
+              onClick={() => handleLanguageChange('en')}
+            >
+              EN
+            </button>
           </div>
         </div>
 
         <PushToggle lang={lang} />
 
-        {pwSuccess && <p className="success-msg" style={{ marginTop: '16px' }}>{pwSuccess}</p>}
+        <div
+          className="account-row"
+          style={{
+            alignItems: 'flex-start',
+            flexDirection: 'column',
+            gap: '10px',
+            marginTop: '20px',
+          }}
+        >
+          <span className="account-label">{t.subscriptionTitle}</span>
 
-        {!showPwForm
-          ? <button className="btn-secondary" onClick={() => setShowPwForm(true)}>{t.changePassword}</button>
-          : (
-            <div style={{ marginTop: '20px' }}>
-              <div className="field">
-                <label>{t.newPassword}</label>
-                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
-              </div>
-              <div className="field">
-                <label>{t.confirmPassword}</label>
-                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
-              </div>
-              {pwError && <p className="error-msg">{pwError}</p>}
-              <button className="btn-primary" onClick={handlePasswordChange} disabled={loading}>
-                {loading ? '...' : t.save}
-              </button>
-              <button className="btn-secondary" onClick={() => setShowPwForm(false)}>
-                {lang === 'fr' ? 'Annuler' : 'Cancel'}
-              </button>
+          <span className="account-value" style={{ lineHeight: 1.5 }}>
+            {t.subscriptionText}
+          </span>
+
+          {stripePortalUrl ? (
+            <a
+              href={stripePortalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
+              style={{
+                marginTop: '4px',
+                width: '100%',
+                textAlign: 'center',
+                textDecoration: 'none',
+              }}
+            >
+              {t.manageSubscription}
+            </a>
+          ) : (
+            <button
+              className="btn-secondary"
+              disabled
+              style={{ width: '100%' }}
+            >
+              {t.portalUnavailable}
+            </button>
+          )}
+        </div>
+
+        {pwSuccess && (
+          <p className="success-msg" style={{ marginTop: '16px' }}>
+            {pwSuccess}
+          </p>
+        )}
+
+        {!showPwForm ? (
+          <button
+            className="btn-secondary"
+            onClick={() => setShowPwForm(true)}
+          >
+            {t.changePassword}
+          </button>
+        ) : (
+          <div style={{ marginTop: '20px' }}>
+            <div className="field">
+              <label>{t.newPassword}</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
             </div>
-          )
-        }
-        <button className="btn-secondary" style={{ marginTop: '24px' }} onClick={handleLogout}>{t.logout}</button>
+
+            <div className="field">
+              <label>{t.confirmPassword}</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+
+            {pwError && <p className="error-msg">{pwError}</p>}
+
+            <button
+              className="btn-primary"
+              onClick={handlePasswordChange}
+              disabled={loading}
+            >
+              {loading ? '...' : t.save}
+            </button>
+
+            <button
+              className="btn-secondary"
+              onClick={() => setShowPwForm(false)}
+            >
+              {t.cancel}
+            </button>
+          </div>
+        )}
+
+        <button
+          className="btn-secondary"
+          style={{ marginTop: '24px' }}
+          onClick={handleLogout}
+        >
+          {t.logout}
+        </button>
       </div>
     </>
   )

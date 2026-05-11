@@ -40,6 +40,7 @@ export default function AdminPage() {
   const [notifBody, setNotifBody] = useState('')
   const [notifUrl, setNotifUrl] = useState('/dashboard')
   const [sending, setSending] = useState(false)
+  const [testEmailAddr, setTestEmailAddr] = useState(ADMIN_EMAIL)
 
   useEffect(() => {
     async function load() {
@@ -178,12 +179,13 @@ export default function AdminPage() {
         Authorization: `Bearer ${session.access_token}`,
         'x-force-test': '1',
       },
+      body: JSON.stringify({ targetEmail: testEmailAddr }),
     })
     const data = await res.json()
     if (!res.ok) {
       flash(`Erreur : ${data.error}`, 'error')
     } else {
-      flash(`✅ Test envoyé — ${data.processed} membre(s) traité(s). Vérifie les boîtes mail.`)
+      flash(`✅ Email test envoyé à ${testEmailAddr}. Vérifie la boîte mail (et les spams).`)
     }
     setSending(false)
   }
@@ -206,6 +208,8 @@ export default function AdminPage() {
     const data = await res.json()
     if (!res.ok) {
       flash(`Erreur : ${data.error}`, 'error')
+    } else if (data.total === 0) {
+      flash(`Aucun appareil abonné aux notifications push. Les membres doivent activer les notifs dans l'app.`, 'error')
     } else {
       flash(`✅ Envoyé à ${data.sent} appareil(s). (${data.failed} échec(s))`)
       setNotifTitle('')
@@ -398,10 +402,14 @@ export default function AdminPage() {
             <p className="section-label">Tester l'email hebdomadaire</p>
             <div style={{ background: 'var(--color-bg)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px' }}>
               <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '14px' }}>
-                Envoie immédiatement l'email des nouveaux batches à tous les membres actifs, quel que soit leur jour de progression. Utile pour vérifier que Resend fonctionne.
+                Envoie un email de test avec les 2 premiers batches publiés à l'adresse indiquée. Utile pour vérifier que Resend fonctionne et prévisualiser le rendu.
               </p>
+              <div className="field">
+                <label>Destinataire du test</label>
+                <input type="email" value={testEmailAddr} onChange={e => setTestEmailAddr(e.target.value)} placeholder="ton@email.com" />
+              </div>
               <button className="btn-secondary" style={{ marginTop: 0 }} onClick={testEmail} disabled={sending}>
-                {sending ? '...' : '📧 Tester l\'envoi email'}
+                {sending ? '...' : '📧 Envoyer l\'email test'}
               </button>
             </div>
           </>

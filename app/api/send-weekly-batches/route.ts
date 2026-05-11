@@ -13,7 +13,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!)
 
 const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
-export async function POST(req: NextRequest) {
+async function handleRequest(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
   const token = authHeader?.replace('Bearer ', '')
 
@@ -45,25 +45,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Moins de 2 batches publiés en base — impossible d\'envoyer.' }, { status: 400 })
   }
 
-  // Mode test : envoie uniquement à l'admin avec les 2 premiers batches publiés
+  // Mode test : envoie à l'email spécifié (ou admin par défaut)
   if (forceTest) {
+    const body = await req.json().catch(() => ({}))
+    const targetEmail: string = body.targetEmail || ADMIN_EMAIL
     const batch1Data = batches[0]
     const batch2Data = batches[1]
     const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.exquilo.com'}/dashboard`
     try {
       const html = await render(WeeklyBatchesEmail({
-        firstName: 'Christophe',
+        firstName: 'Test',
         batch1: { title: batch1Data.title, univers: batch1Data.univers ?? '', number: batch1Data.batch_number },
         batch2: { title: batch2Data.title, univers: batch2Data.univers ?? '', number: batch2Data.batch_number },
         dashboardUrl,
       }))
       await resend.emails.send({
         from: 'EXQUILO <hello@exquilo.com>',
-        to: ADMIN_EMAIL,
+        to: targetEmail,
         subject: `[TEST] Vos 2 nouveaux batches sont prêts 🍳`,
         html,
       })
-      return NextResponse.json({ processed: 1, results: [{ email: ADMIN_EMAIL, status: 'sent' }] })
+      return NextResponse.json({ processed: 1, results: [{ email: targetEmail, status: 'sent' }] })
     } catch (err) {
       return NextResponse.json({ error: `Resend error: ${String(err)}` }, { status: 500 })
     }
@@ -123,3 +125,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ processed: results.length, results })
 }
+
+// Vercel Cron appelle en GET — le bouton admin appelle en POST
+export const GET = handleRequest
+export const POST = handleRequest
