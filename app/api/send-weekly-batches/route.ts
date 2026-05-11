@@ -13,12 +13,61 @@ const resend = new Resend(process.env.RESEND_API_KEY!)
 
 const ADMIN_EMAIL = 'chris.cdr@gmail.com'
 
+type BatchSummary = {
+  batch_number: number
+  title: string
+  univers: string | null
+}
+
+type MemberSummary = {
+  id: string
+  email: string
+  first_name: string | null
+  start_date: string
+}
+
+type SendResult = {
+  email: string
+  status: 'sent' | 'dry-run' | 'skipped' | 'error'
+  reason?: string
+  batches?: number[]
+}
+
+function getBatchPairForMember(member: MemberSummary, batches: BatchSummary[], today: Date) {
+  const start = new Date(`${member.start_date}T00:00:00.000Z`)
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
+  const diffDays = Math.floor((todayUtc - start.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) {
+    return { status: 'skipped' as const, reason: 'start_date is in the future' }
+  }
+
+  if (diffDays === 0) {
+    return { status: 'skipped' as const, reason: 'member starts today' }
+  }
+
+  if (diffDays % 7 !== 0) {
+    return { status: 'skipped' as const, reason: `not an unlock day (${diffDays} days since start)` }
+  }
+
+  const weeksElapsed = Math.floor(diffDays / 7)
+  const newMax = (weeksElapsed + 1) * 2
+  const batch1Data = batches.find(b => b.batch_number === newMax - 1)
+  const batch2Data = batches.find(b => b.batch_number === newMax)
+
+  if (!batch1Data || !batch2Data) {
+    return { status: 'skipped' as const, reason: `missing published batches ${newMax - 1}-${newMax}` }
+  }
+
+  return { status: 'ready' as const, batch1Data, batch2Data }
+}
+
 async function handleRequest(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
   const token = authHeader?.replace('Bearer ', '')
 
-  // Accepte soit le CRON_SECRET (Vercel cron) soit un access_token admin
-  const isCron = token === process.env.CRON_SECRET
+  // Vercel sends CRON_SECRET as a Bearer token. Admin POST requests use the Supabase access token.
+  const isCron = Boolean(process.env.CRON_SECRET) && token === process.env.CRON_SECRET
   let isAdmin = false
   if (!isCron && token) {
     const { data: { user } } = await supabaseAdmin.auth.getUser(token)
@@ -29,6 +78,7 @@ async function handleRequest(req: NextRequest) {
   }
 
   const forceTest = req.headers.get('x-force-test') === '1'
+  const dryRun = req.headers.get('x-dry-run') === '1'
   const today = new Date()
 
   const { data: batches, error: batchesError } = await supabaseAdmin
@@ -41,16 +91,17 @@ async function handleRequest(req: NextRequest) {
     return NextResponse.json({ error: `Batches DB error: ${batchesError.message}` }, { status: 500 })
   }
 
-  if (!batches || batches.length < 2) {
-    return NextResponse.json({ error: 'Moins de 2 batches publiés en base — impossible d\'envoyer.' }, { status: 400 })
+  const publishedBatches = (batches ?? []) as BatchSummary[]
+  if (publishedBatches.length < 2) {
+    return NextResponse.json({ error: "Moins de 2 batches publiés en base - impossible d'envoyer." }, { status: 400 })
   }
 
-  // Mode test : envoie à l'email spécifié (ou admin par défaut)
+  // Test mode: send the first 2 published batches to a chosen address.
   if (forceTest) {
     const body = await req.json().catch(() => ({}))
     const targetEmail: string = body.targetEmail || ADMIN_EMAIL
-    const batch1Data = batches[0]
-    const batch2Data = batches[1]
+    const batch1Data = publishedBatches[0]
+    const batch2Data = publishedBatches[1]
     const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.exquilo.com'}/dashboard`
     try {
       const html = await render(WeeklyBatchesEmail({
@@ -62,7 +113,7 @@ async function handleRequest(req: NextRequest) {
       await resend.emails.send({
         from: 'EXQUILO <hello@exquilo.com>',
         to: targetEmail,
-        subject: `[TEST] Vos 2 nouveaux batches sont prêts 🍳`,
+        subject: '[TEST] Vos 2 nouveaux batches sont prêts 🍳',
         html,
       })
       return NextResponse.json({ processed: 1, results: [{ email: targetEmail, status: 'sent' }] })
@@ -71,7 +122,6 @@ async function handleRequest(req: NextRequest) {
     }
   }
 
-  // Mode cron normal : tous les membres actifs dont c'est le jour de déblocage
   const { data: members, error: membersError } = await supabaseAdmin
     .from('profiles')
     .select('id, email, first_name, start_date')
@@ -83,32 +133,36 @@ async function handleRequest(req: NextRequest) {
     return NextResponse.json({ error: `Members DB error: ${membersError.message}` }, { status: 500 })
   }
 
-  const results: { email: string; status: string }[] = []
+  const results: SendResult[] = []
+  const activeMembers = (members ?? []) as MemberSummary[]
 
-  for (const member of members ?? []) {
-    const start = new Date(member.start_date)
-    const diffMs = today.getTime() - start.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffDays <= 0 || diffDays % 7 !== 0) continue
-
-    const weeksElapsed = Math.floor(diffDays / 7)
-    const newMax = (weeksElapsed + 1) * 2
-    const batch1Data = batches.find(b => b.batch_number === newMax - 1)
-    const batch2Data = batches.find(b => b.batch_number === newMax)
-    if (!batch1Data || !batch2Data) continue
+  for (const member of activeMembers) {
+    const plan = getBatchPairForMember(member, publishedBatches, today)
+    if (plan.status === 'skipped') {
+      results.push({ email: member.email, status: 'skipped', reason: plan.reason })
+      continue
+    }
 
     const firstName = member.first_name || ''
     const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.exquilo.com'}/dashboard`
     const subject = firstName
       ? `${firstName}, vos 2 nouveaux batches sont prêts 🍳`
-      : `Vos 2 nouveaux batches sont prêts 🍳`
+      : 'Vos 2 nouveaux batches sont prêts 🍳'
+
+    if (dryRun) {
+      results.push({
+        email: member.email,
+        status: 'dry-run',
+        batches: [plan.batch1Data.batch_number, plan.batch2Data.batch_number],
+      })
+      continue
+    }
 
     try {
       const html = await render(WeeklyBatchesEmail({
         firstName: firstName || 'vous',
-        batch1: { title: batch1Data.title, univers: batch1Data.univers ?? '', number: newMax - 1 },
-        batch2: { title: batch2Data.title, univers: batch2Data.univers ?? '', number: newMax },
+        batch1: { title: plan.batch1Data.title, univers: plan.batch1Data.univers ?? '', number: plan.batch1Data.batch_number },
+        batch2: { title: plan.batch2Data.title, univers: plan.batch2Data.univers ?? '', number: plan.batch2Data.batch_number },
         dashboardUrl,
       }))
       await resend.emails.send({
@@ -117,15 +171,26 @@ async function handleRequest(req: NextRequest) {
         subject,
         html,
       })
-      results.push({ email: member.email, status: 'sent' })
+      results.push({
+        email: member.email,
+        status: 'sent',
+        batches: [plan.batch1Data.batch_number, plan.batch2Data.batch_number],
+      })
     } catch (err) {
-      results.push({ email: member.email, status: `error: ${String(err)}` })
+      results.push({ email: member.email, status: 'error', reason: String(err) })
     }
   }
 
-  return NextResponse.json({ processed: results.length, results })
+  const summary = {
+    activeMembers: activeMembers.length,
+    sent: results.filter(r => r.status === 'sent').length,
+    dryRun: results.filter(r => r.status === 'dry-run').length,
+    skipped: results.filter(r => r.status === 'skipped').length,
+    errors: results.filter(r => r.status === 'error').length,
+  }
+
+  return NextResponse.json({ processed: summary.sent + summary.dryRun, summary, results })
 }
 
-// Vercel Cron appelle en GET — le bouton admin appelle en POST
 export const GET = handleRequest
 export const POST = handleRequest

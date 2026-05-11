@@ -41,6 +41,7 @@ export default function AdminPage() {
   const [notifUrl, setNotifUrl] = useState('/dashboard')
   const [sending, setSending] = useState(false)
   const [testEmailAddr, setTestEmailAddr] = useState(ADMIN_EMAIL)
+  const [emailAudit, setEmailAudit] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -186,6 +187,45 @@ export default function AdminPage() {
       flash(`Erreur : ${data.error}`, 'error')
     } else {
       flash(`✅ Email test envoyé à ${testEmailAddr}. Vérifie la boîte mail (et les spams).`)
+    }
+    setSending(false)
+  }
+
+  async function auditWeeklyEmail() {
+    setSending(true)
+    setEmailAudit('')
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { flash('Non authentifié.', 'error'); setSending(false); return }
+    const res = await fetch('/api/send-weekly-batches', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+        'x-dry-run': '1',
+      },
+      body: JSON.stringify({}),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      flash(`Erreur : ${data.error}`, 'error')
+    } else {
+      const summary = data.summary || {}
+      const sample = (data.results || [])
+        .slice(0, 6)
+        .map((r: { email: string; status: string; reason?: string; batches?: number[] }) => {
+          const detail = r.batches ? `batchs ${r.batches.join('-')}` : r.reason
+          return `${r.email}: ${r.status}${detail ? ` (${detail})` : ''}`
+        })
+        .join('\n')
+      setEmailAudit([
+        `Membres actifs: ${summary.activeMembers ?? 0}`,
+        `Emails qui partiraient aujourd'hui: ${summary.dryRun ?? 0}`,
+        `Membres ignores: ${summary.skipped ?? 0}`,
+        `Erreurs: ${summary.errors ?? 0}`,
+        sample ? `\nDetails:\n${sample}` : '',
+      ].join('\n'))
+      flash('Verification terminee.')
     }
     setSending(false)
   }
@@ -411,6 +451,14 @@ export default function AdminPage() {
               <button className="btn-secondary" style={{ marginTop: 0 }} onClick={testEmail} disabled={sending}>
                 {sending ? '...' : '📧 Envoyer l\'email test'}
               </button>
+              <button className="btn-secondary" style={{ marginTop: '10px' }} onClick={auditWeeklyEmail} disabled={sending}>
+                {sending ? '...' : "Vérifier l'envoi automatique du jour"}
+              </button>
+              {emailAudit && (
+                <pre style={{ marginTop: '14px', whiteSpace: 'pre-wrap', fontSize: '12px', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', padding: '12px' }}>
+                  {emailAudit}
+                </pre>
+              )}
             </div>
           </>
         )}
