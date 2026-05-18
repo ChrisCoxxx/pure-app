@@ -27,6 +27,8 @@ export default function AdminPage() {
   const [bCourses, setBCourses] = useState('')
   const [bUnivers, setBUnivers] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
+  const [uploadingHtml, setUploadingHtml] = useState(false)
+  const [uploadingCourses, setUploadingCourses] = useState(false)
 
   const [mFirstName, setMFirstName] = useState('')
   const [mStart, setMStart] = useState('')
@@ -93,6 +95,26 @@ export default function AdminPage() {
       await fetchAll(supabase)
     }
     setInviting(false)
+  }
+
+  async function uploadHtmlFile(file: File, type: 'batch' | 'courses') {
+    if (!bNum) { flash('Entrez d\'abord le numéro du batch.', 'error'); return }
+    const setUploading = type === 'batch' ? setUploadingHtml : setUploadingCourses
+    const setUrl = type === 'batch' ? setBHtml : setBCourses
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('type', type)
+    fd.append('batchNumber', bNum)
+    const res = await fetch('/api/upload-batch-html', { method: 'POST', body: fd })
+    const data = await res.json()
+    if (!res.ok) {
+      flash(`Erreur upload : ${data.error}`, 'error')
+    } else {
+      setUrl(data.url)
+      flash(`✅ ${data.filename} uploadé !`)
+    }
+    setUploading(false)
   }
 
   async function saveBatch() {
@@ -312,12 +334,30 @@ export default function AdminPage() {
                 <input type="text" value={bPdf} onChange={e => setBPdf(e.target.value)} placeholder="https://drive.google.com/..." />
               </div>
               <div className="field">
-                <label>Lien HTML batch</label>
-                <input type="text" value={bHtml} onChange={e => setBHtml(e.target.value)} placeholder="https://...supabase.co/storage/v1/object/public/batches/batch_N.html" />
+                <label>Fichier HTML du batch</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <label style={{ cursor: 'pointer', background: 'var(--color-bg-secondary)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '8px 14px', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                    {uploadingHtml ? '⏳ Upload...' : '📄 Choisir le fichier batch'}
+                    <input type="file" accept=".html" style={{ display: 'none' }} disabled={uploadingHtml}
+                      onChange={e => { const f = e.target.files?.[0]; if (f) uploadHtmlFile(f, 'batch'); e.target.value = '' }} />
+                  </label>
+                  {bHtml
+                    ? <span style={{ fontSize: '12px', color: 'var(--color-green-text)' }}>✓ {bHtml.split('/').pop()}</span>
+                    : <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Aucun fichier</span>}
+                </div>
               </div>
               <div className="field">
-                <label>Lien HTML liste de courses</label>
-                <input type="text" value={bCourses} onChange={e => setBCourses(e.target.value)} placeholder="https://...supabase.co/storage/v1/object/public/batches/courses_batch_N.html" />
+                <label>Fichier HTML liste de courses</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <label style={{ cursor: 'pointer', background: 'var(--color-bg-secondary)', border: '0.5px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '8px 14px', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                    {uploadingCourses ? '⏳ Upload...' : '🛒 Choisir la liste de courses'}
+                    <input type="file" accept=".html" style={{ display: 'none' }} disabled={uploadingCourses}
+                      onChange={e => { const f = e.target.files?.[0]; if (f) uploadHtmlFile(f, 'courses'); e.target.value = '' }} />
+                  </label>
+                  {bCourses
+                    ? <span style={{ fontSize: '12px', color: 'var(--color-green-text)' }}>✓ {bCourses.split('/').pop()}</span>
+                    : <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Aucun fichier</span>}
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button className="btn-primary" style={{ marginTop: 0 }} onClick={saveBatch} disabled={saving}>
