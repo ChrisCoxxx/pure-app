@@ -35,6 +35,8 @@ create table if not exists batches (
   title text not null,
   description text,
   pdf_url text,
+  html_url text,
+  courses_url text,
   is_published boolean default false,
   created_at timestamp with time zone default now()
 );

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { canAccessBatch } from '@/lib/progression'
 
-type Batch = { id: string; batch_number: number; title: string; description: string; pdf_url: string }
+type Batch = { id: string; batch_number: number; title: string; description: string; pdf_url: string; html_url: string | null; courses_url: string | null }
 
 export default function BatchPage({ params }: { params: { number: string } }) {
   const router = useRouter()
@@ -15,8 +15,8 @@ export default function BatchPage({ params }: { params: { number: string } }) {
   const [loading, setLoading] = useState(true)
 
   const t = {
-    fr: { back: '← Retour', day: 'Jour', openPdf: 'Ouvrir le PDF', week: 'Semaine', batch: 'Batch' },
-    en: { back: '← Back', day: 'Day', openPdf: 'Open PDF', week: 'Week', batch: 'Batch' },
+    fr: { back: '← Retour', day: 'Jour', openBatch: 'Ouvrir le batch', openCourses: 'Liste de courses', week: 'Semaine', batch: 'Batch' },
+    en: { back: '← Back', day: 'Day', openBatch: 'Open batch', openCourses: 'Shopping list', week: 'Week', batch: 'Batch' },
   }[lang]
 
   useEffect(() => {
@@ -69,9 +69,14 @@ export default function BatchPage({ params }: { params: { number: string } }) {
 
 
 
-        {batch.pdf_url && (
-          <a href={batch.pdf_url} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
-            {t.openPdf}
+        {batch.html_url && (
+          <a href={`/api/html?url=${encodeURIComponent(batch.html_url)}`} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
+            {t.openBatch}
+          </a>
+        )}
+        {batch.courses_url && (
+          <a href={`/api/html?url=${encodeURIComponent(batch.courses_url)}`} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ display: 'block', textAlign: 'center' }}>
+            {t.openCourses}
           </a>
         )}
         <Link href="/dashboard" className="btn-secondary" style={{ display: 'block', textAlign: 'center' }}>
